@@ -11,6 +11,7 @@ exports.createReport = async (req, res) => {
       description,
       location,
       image,
+      incident_date,
     } = req.body;
 
     const user_id = req.user.id;
@@ -23,9 +24,10 @@ exports.createReport = async (req, res) => {
         title,
         description,
         location,
-        image
+        image,
+        incident_date
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       `,
       [
         user_id,
@@ -34,6 +36,7 @@ exports.createReport = async (req, res) => {
         description,
         location,
         image,
+        incident_date,
       ]
     );
 
@@ -182,6 +185,7 @@ exports.updateReport = async (req, res) => {
       location,
       image,
       status,
+      incident_date,
     } = req.body;
 
     await db.query(
@@ -193,7 +197,8 @@ exports.updateReport = async (req, res) => {
         description = ?,
         location = ?,
         image = ?,
-        status = ?
+        status = ?,
+        incident_date = ?
       WHERE id = ?
       `,
       [
@@ -203,6 +208,7 @@ exports.updateReport = async (req, res) => {
         location,
         image,
         status,
+        incident_date,
         id,
       ]
     );

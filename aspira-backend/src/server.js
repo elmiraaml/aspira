@@ -7,6 +7,7 @@ const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const commentRoutes = require("./routes/commentRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ db.getConnection()
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Aspira Berjalan...");

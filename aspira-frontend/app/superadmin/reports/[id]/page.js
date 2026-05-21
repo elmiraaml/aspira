@@ -56,7 +56,7 @@ export default function SuperAdminReportDetailPage() {
 
         const data = await res.json();
 
-        setReport(data.report);
+        setReport(data.report || data);
         setTimeline(data.timeline || []);
       } catch (err) {
         console.error("Detail Error:", err);
@@ -151,7 +151,7 @@ export default function SuperAdminReportDetailPage() {
           <MetaItem icon={<Mail size={16} />} label="Email" value={report.reporter_email || "-"} />
           <MetaItem icon={<Phone size={16} />} label="Telepon" value={report.reporter_phone || "-"} />
           <MetaItem icon={<FileText size={16} />} label="Kategori" value={report.category_name || "-"} />
-          <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.incident_location || "-"} />
+          <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.location || "-"} />
           <MetaItem icon={<Calendar size={16} />} label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
           <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
         </div>

@@ -50,7 +50,7 @@ export default function AdminReportDetailPage() {
     try {
       const data = await api(`/reports/${id}`);
       if (data && data.report) {
-        setReport(data.report);
+        setReport(data.report || data);
         setTimeline(data.timeline || []);
         setNewStatus(data.report.status);
       } else if (data && data.id) {
@@ -188,6 +188,15 @@ export default function AdminReportDetailPage() {
     });
   };
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   // ======================================================
   // LOADING
   // ======================================================
@@ -292,7 +301,13 @@ export default function AdminReportDetailPage() {
           <MetaItem
             icon={<MapPin size={16} />}
             label="Lokasi"
-            value={report.incident_location || "-"}
+            value={report.location || "-"}
+          />
+
+          <MetaItem
+            icon={<Calendar size={16} />}
+            label="Tanggal Kejadian"
+            value={formatDate(report.incident_date)}
           />
 
           <MetaItem

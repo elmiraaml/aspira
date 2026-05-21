@@ -131,6 +131,7 @@ export default function CreateReportPage() {
           title: formData.title,
           description: formData.description,
           location: formData.incident_location,
+          incident_date: formData.incident_date,
           image: imageUrl,
         }),
       });

@@ -214,7 +214,7 @@ export default function UserReportDetailPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <MetaItem icon={<ShieldAlert size={16} />} label="Kategori" value={report.category_name || "-"} />
-                <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.incident_location || "-"} />
+                <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.location || "-"} />
                 <MetaItem icon={<Calendar size={16} />} label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
                 <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
               </div>
