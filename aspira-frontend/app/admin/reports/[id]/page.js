@@ -274,22 +274,22 @@ export default function AdminReportDetailPage() {
           <p style={styles.desc}>{report.description}</p>
         </div>
 
-        {report.bukti_foto && (
+        {report.image || report.bukti_foto ? (
           <div style={styles.imageBox}>
             <ImageIcon size={18} color="#004b8d" />
             <img
-              src={report.bukti_foto}
+              src={report.image || report.bukti_foto}
               alt="Bukti Foto"
               style={styles.image}
             />
           </div>
-        )}
+        ) : null}
 
         <div style={styles.metaGrid}>
           <MetaItem
             icon={<User size={16} />}
             label="Pelapor"
-            value={report.reporter_name || "-"}
+            value={report.fullname || "-"}
           />
 
           <MetaItem

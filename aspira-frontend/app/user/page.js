@@ -34,7 +34,7 @@ export default function Page() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await api("/reports/my", { method: "GET" });
+      const res = await api("/reports", { method: "GET" });
       if (Array.isArray(res)) setPengaduan(res);
     } catch (err) {
       console.error(err);

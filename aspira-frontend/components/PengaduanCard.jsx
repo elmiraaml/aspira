@@ -143,6 +143,17 @@ export default function PengaduanCard({ data, pengaduan }) {
         focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
       "
     >
+      {/* Gambar Lampiran */}
+      {(item.image || item.bukti_foto) && (
+        <div className="w-full h-40 bg-gray-100 overflow-hidden shrink-0">
+          <img 
+            src={item.image || item.bukti_foto} 
+            alt={item.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        </div>
+      )}
+
       {/* Progress bar */}
       <div className="h-[3px] w-full bg-gray-100">
         <div
