@@ -62,6 +62,15 @@ export default function MyReportsPage() {
     }
   };
 
+  const getPriorityConfig = (priority) => {
+    const map = {
+      low: { label: "Rendah", color: "text-emerald-500", dot: "bg-emerald-400" },
+      medium: { label: "Sedang", color: "text-amber-500", dot: "bg-amber-400" },
+      high: { label: "Tinggi", color: "text-orange-500", dot: "bg-orange-500" },
+    };
+    return map[priority?.toLowerCase()] || map.low;
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
       {/* SIDEBAR */}
@@ -175,10 +184,15 @@ export default function MyReportsPage() {
 
               {/* Footer */}
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-amber-500 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                  Prioritas Sedang
-                </span>
+                {(() => {
+                  const priorityConf = getPriorityConfig(item.priority);
+                  return (
+                    <span className={`text-[11px] ${priorityConf.color} font-medium flex items-center gap-1`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${priorityConf.dot} inline-block`} />
+                      Prioritas {priorityConf.label}
+                    </span>
+                  );
+                })()}
                 <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
                   item.status === "pending" ? "bg-gray-100 text-gray-400" : "bg-blue-500 text-white"
                 }`}>

@@ -12,6 +12,7 @@ exports.createReport = async (req, res) => {
       location,
       image,
       incident_date,
+      priority,
     } = req.body;
 
     const user_id = req.user.id;
@@ -25,9 +26,10 @@ exports.createReport = async (req, res) => {
         description,
         location,
         image,
-        incident_date
+        incident_date,
+        priority
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         user_id,
@@ -37,6 +39,7 @@ exports.createReport = async (req, res) => {
         location,
         image,
         incident_date,
+        priority || 'low',
       ]
     );
 
@@ -174,6 +177,7 @@ exports.updateReport = async (req, res) => {
       image,
       status,
       incident_date,
+      priority,
     } = req.body;
 
     await db.query(
@@ -186,7 +190,8 @@ exports.updateReport = async (req, res) => {
         location = ?,
         image = ?,
         status = ?,
-        incident_date = ?
+        incident_date = ?,
+        priority = COALESCE(?, priority)
       WHERE id = ?
       `,
       [
@@ -197,6 +202,7 @@ exports.updateReport = async (req, res) => {
         image,
         status,
         incident_date,
+        priority,
         id,
       ]
     );

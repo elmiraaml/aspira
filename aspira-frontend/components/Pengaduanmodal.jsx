@@ -23,10 +23,10 @@ const KATEGORI_LIST = [
 ];
 
 const PRIORITY_CONFIG = {
-  LOW: { label: "Rendah", color: "text-green-600 bg-green-50 border-green-200" },
-  MEDIUM: { label: "Sedang", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-  HIGH: { label: "Tinggi", color: "text-orange-600 bg-orange-50 border-orange-200" },
-  URGENT: { label: "Mendesak", color: "text-red-600 bg-red-50 border-red-200" },
+  low: { label: "Rendah", color: "text-green-600 bg-green-50 border-green-200" },
+  medium: { label: "Sedang", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  high: { label: "Tinggi", color: "text-orange-600 bg-orange-50 border-orange-200" },
+  urgent: { label: "Mendesak", color: "text-red-600 bg-red-50 border-red-200" },
 };
 
 const STATUS_AUTO = {
@@ -63,7 +63,7 @@ export default function PengaduanModal({ show, onClose, onSave, editPengaduan })
   const [description, setDescription] = useState("");
   const [kategori, setKategori] = useState("");
   const [kategoriCustom, setKategoriCustom] = useState("");
-  const [priority, setPriority] = useState("MEDIUM");
+  const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
   const [images, setImages] = useState([]);
   const [previewIndex, setPreviewIndex] = useState(null);
@@ -84,7 +84,7 @@ export default function PengaduanModal({ show, onClose, onSave, editPengaduan })
     if (editPengaduan) {
       setTitle(editPengaduan.title || "");
       setDescription(editPengaduan.description || "");
-      setPriority(editPengaduan.priority || "MEDIUM");
+      setPriority(editPengaduan.priority?.toLowerCase() || "medium");
       setKategori(editPengaduan.kategori || "");
       setLokasi(editPengaduan.lokasi || "");
       setDueDate(editPengaduan.dueDate ? editPengaduan.dueDate.split("T")[0] : "");
@@ -104,7 +104,7 @@ export default function PengaduanModal({ show, onClose, onSave, editPengaduan })
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setPriority("MEDIUM");
+    setPriority("medium");
     setKategori("");
     setKategoriCustom("");
     setLokasi("");

@@ -82,10 +82,10 @@
   };
 
   const PRIORITY_CONFIG = {
-    LOW:    { label: "Rendah",   color: "text-emerald-600", dot: "bg-emerald-400" },
-    MEDIUM: { label: "Sedang",   color: "text-amber-600",   dot: "bg-amber-400"   },
-    HIGH:   { label: "Tinggi",   color: "text-orange-600",  dot: "bg-orange-500"  },
-    URGENT: { label: "Mendesak", color: "text-red-600",     dot: "bg-red-500"     },
+    low:    { label: "Rendah",   color: "text-emerald-600", dot: "bg-emerald-400" },
+    medium: { label: "Sedang",   color: "text-amber-600",   dot: "bg-amber-400"   },
+    high:   { label: "Tinggi",   color: "text-orange-600",  dot: "bg-orange-500"  },
+    urgent: { label: "Mendesak", color: "text-red-600",     dot: "bg-red-500"     },
   };
 
   function formatTanggal(dateStr) {
@@ -122,7 +122,7 @@
     if (!item) return null;
 
     const status   = STATUS_CONFIG[item.status]   || STATUS_CONFIG.pending;
-    const priority = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.MEDIUM;
+    const priority = PRIORITY_CONFIG[item.priority?.toLowerCase()] || PRIORITY_CONFIG.low;
     const kategori = getKategori(item.category_name || item.kategori);
 
     return (

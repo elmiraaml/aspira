@@ -80,6 +80,7 @@ export default function CreateReportPage() {
     description: "",
     incident_location: "",
     incident_date: "",
+    priority: "low",
     bukti_foto: null,
   });
 
@@ -168,6 +169,7 @@ export default function CreateReportPage() {
           location: formData.incident_location,
           incident_date: formData.incident_date,
           image: imageUrl,
+          priority: formData.priority,
         }),
       });
 
@@ -319,7 +321,26 @@ export default function CreateReportPage() {
                       className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
                     />
                   </div>
+                  
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                        <AlertCircle size={15} />
+                      </div>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Tingkat Prioritas</p>
+                    </div>
+                    <select
+                      name="priority" value={formData.priority} onChange={handleChange} required
+                      className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
+                    >
+                      <option value="low">Rendah (Low)</option>
+                      <option value="medium">Sedang (Medium)</option>
+                      <option value="high">Tinggi (High)</option>
+                    </select>
+                  </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">

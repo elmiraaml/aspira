@@ -87,11 +87,13 @@ export default function AdminReportsPage() {
 
   const getPriorityStyle = (priority) => {
     const map = {
-      emergency: { bg: "#fde8e8", color: "#c0392b", label: "Emergency" },
-      high: { bg: "#fff7d6", color: "#b07d00", label: "High" },
-      medium: { bg: "#e8f5ff", color: "#004b8d", label: "Medium" },
+      urgent: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
+      emergency: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
+      high: { bg: "#fff7d6", color: "#b07d00", label: "Tinggi" },
+      medium: { bg: "#e8f5ff", color: "#004b8d", label: "Sedang" },
+      low: { bg: "#f1f1e6", color: "#3a5068", label: "Rendah" },
     };
-    return map[priority] || { bg: "#f1f1e6", color: "#3a5068", label: "Low" };
+    return map[priority?.toLowerCase()] || map.low;
   };
 
   const getStatusStyle = (status) => {

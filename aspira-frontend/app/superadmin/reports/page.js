@@ -33,10 +33,21 @@ export default function SuperAdminReportsPage() {
   const filteredReports = reports.filter(
     (report) =>
       report.title?.toLowerCase().includes(search.toLowerCase()) ||
-      (report.reporter_name || "")
+      (report.fullname || "")
         .toLowerCase()
         .includes(search.toLowerCase())
   );
+
+  const getPriorityStyle = (priority) => {
+    const map = {
+      urgent: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
+      emergency: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
+      high: { bg: "#fff7d6", color: "#b07d00", label: "Tinggi" },
+      medium: { bg: "#e8f5ff", color: "#004b8d", label: "Sedang" },
+      low: { bg: "#f1f1e6", color: "#3a5068", label: "Rendah" },
+    };
+    return map[priority?.toLowerCase()] || map.low;
+  };
 
   const getStatusStyle = (status) => {
     const map = {
@@ -116,6 +127,7 @@ export default function SuperAdminReportsPage() {
               <th style={styles.th}>Judul</th>
               <th style={styles.th}>Pelapor</th>
               <th style={styles.th}>Kategori</th>
+              <th style={styles.th}>Prioritas</th>
               <th style={styles.th}>Status</th>
               <th style={styles.th}>Tanggal</th>
               <th style={styles.th}>Detail</th>
@@ -125,12 +137,25 @@ export default function SuperAdminReportsPage() {
           <tbody>
             {filteredReports.map((report) => {
               const status = getStatusStyle(report.status);
+              const priority = getPriorityStyle(report.priority);
 
               return (
                 <tr key={report.id}>
                   <td style={styles.td}>{report.title}</td>
-                  <td style={styles.td}>{report.reporter_name || "-"}</td>
+                  <td style={styles.td}>{report.fullname || "Masyarakat"}</td>
                   <td style={styles.td}>{report.category_name || "-"}</td>
+
+                  <td style={styles.td}>
+                    <span
+                      style={{
+                        ...styles.badge,
+                        background: priority.bg,
+                        color: priority.color,
+                      }}
+                    >
+                      {priority.label}
+                    </span>
+                  </td>
 
                   <td style={styles.td}>
                     <span
