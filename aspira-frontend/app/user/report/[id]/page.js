@@ -209,15 +209,15 @@ export default function UserReportDetailPage() {
                 <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
               </div>
 
-              {report.bukti_foto && (
+              {report.image || report.bukti_foto ? (
                 <div className="mt-4 pt-5 border-t border-gray-50">
                   <div className="flex items-center gap-2 mb-3">
                     <ImageIcon size={18} className="text-blue-600" />
                     <span className="text-sm font-semibold text-gray-900">Bukti Foto</span>
                   </div>
-                  <img src={report.bukti_foto} alt="Bukti" className="max-w-full max-h-[400px] object-contain rounded-2xl border border-gray-100 bg-gray-50/50 p-2" />
+                  <img src={report.image || report.bukti_foto} alt="Bukti" className="max-w-full max-h-[400px] object-contain rounded-2xl border border-gray-100 bg-gray-50/50 p-2" />
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Timeline Card */}

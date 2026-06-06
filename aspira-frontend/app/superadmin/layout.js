@@ -4,10 +4,38 @@
 // ============================================================
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import SidebarSuperAdmin from "../../components/sidebarSuper";
 import Navbar from "../../components/Navbar";
 
 export default function SuperAdminLayout({ children }) {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    
+    if (!token || !userStr) {
+      router.push("/login");
+      return;
+    }
+    
+    try {
+      const user = JSON.parse(userStr);
+      if (user.role !== "superadmin") {
+        router.push("/login");
+      } else {
+        setIsAuthorized(true);
+      }
+    } catch (e) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  if (!isAuthorized) return null;
+
   return (
     <div
       style={{

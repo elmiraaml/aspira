@@ -147,7 +147,7 @@ export default function SuperAdminReportDetailPage() {
         </div>
 
         <div style={styles.metaGrid}>
-          <MetaItem icon={<User size={16} />} label="Pelapor" value={report.reporter_name || "-"} />
+          <MetaItem icon={<User size={16} />} label="Pelapor" value={report.fullname || "-"} />
           <MetaItem icon={<Mail size={16} />} label="Email" value={report.reporter_email || "-"} />
           <MetaItem icon={<Phone size={16} />} label="Telepon" value={report.reporter_phone || "-"} />
           <MetaItem icon={<FileText size={16} />} label="Kategori" value={report.category_name || "-"} />
@@ -156,15 +156,15 @@ export default function SuperAdminReportDetailPage() {
           <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
         </div>
 
-        {report.bukti_foto && (
+        {report.image || report.bukti_foto ? (
           <div style={styles.imageBox}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <ImageIcon size={18} color="#004b8d" />
               <span style={styles.imageLabel}>Bukti Foto</span>
             </div>
-            <img src={report.bukti_foto} alt="Bukti" style={styles.image} />
+            <img src={report.image || report.bukti_foto} alt="Bukti" style={styles.image} />
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Timeline Card */}
