@@ -99,11 +99,6 @@ export default function AdminReportsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Header */}
-      <div style={styles.hero}>
-        <h1 style={styles.heroTitle}>Kelola Laporan</h1>
-        <p style={styles.heroDesc}>Admin dapat memeriksa, memverifikasi, menindak lanjuti, atau menyelesaikan laporan.</p>
-      </div>
 
       {/* Filters */}
       <div style={styles.filterCard}>

@@ -78,17 +78,17 @@ export default function MyReportsPage() {
           {/* HEADER */}
           <div className="mb-6">
             <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
-              Riwayat
+              Monitoring Pengaduan
             </p>
             <h3 className="text-lg text-gray-800 font-semibold">
-              Laporan Saya
+              Laporan Aktif
             </h3>
           </div>
 
           {/* LOADING */}
           {loading && (
             <div className="flex items-center justify-center py-20 gap-3">
-              <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              <div claassName="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
               <span className="text-sm text-gray-400">Memuat data...</span>
             </div>
           )}
@@ -121,46 +121,77 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* LIST */}
-          {!loading && reports.length > 0 && (
-            <div className="flex flex-col gap-3">
-              {reports.map((item) => {
-                const status = getStatusConfig(item.status);
-                return (
-                  <Link key={item.id} href={`/user/report/${item.id}`} className="block">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4 hover:-translate-y-px hover:shadow-md transition-all cursor-pointer">
+         {/* LIST */}
+{!loading && reports.length > 0 && (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {reports.map((item) => {
+      const status = getStatusConfig(item.status);
+      return (
+        <Link key={item.id} href={`/user/report/${item.id}`} className="block">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
+            
+            {/* Top accent bar sesuai status */}
+            <div className={`h-1 w-full ${
+              item.status === "pending" ? "bg-amber-400" :
+              item.status === "selesai" ? "bg-green-400" :
+              item.status === "ditolak" || item.status === "rejected" ? "bg-red-400" :
+              "bg-blue-400"
+            }`} />
 
-                      {/* LEFT */}
-                      <div className="min-w-0 flex-1">
-                        <h2 className="text-sm font-semibold text-gray-800 truncate mb-1">
-                          {item.title}
-                        </h2>
-                        <p className="text-[11px] text-gray-400">
-                          {item.category_name} &bull;{" "}
-                          {new Date(item.created_at).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </div>
+            <div className="p-4">
+              {/* Category & Status */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                  <FileQuestion size={12} />
+                  {item.category_name ?? "Umum"}
+                </span>
+                <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg ${status.bg} ${status.color}`}>
+                  {status.icon}
+                  {status.label}
+                </span>
+              </div>
 
-                      {/* RIGHT */}
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-xl ${status.bg} ${status.color}`}>
-                          {status.icon}
-                          {status.label}
-                        </span>
-                        <div className="w-7 h-7 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-                          <ChevronRight size={14} />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {/* Title */}
+              <h2 className="text-sm font-semibold text-gray-800 mb-3 line-clamp-2">
+                {item.title}
+              </h2>
+
+              {/* Location & Date */}
+              <div className="flex flex-col gap-1 mb-4">
+                {item.location && (
+                  <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                    <span>📍</span> {item.location}
+                  </p>
+                )}
+                <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                  <span>📅</span>
+                  {new Date(item.created_at).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-amber-500 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+                  Prioritas Sedang
+                </span>
+                <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+                  item.status === "pending" ? "bg-gray-100 text-gray-400" : "bg-blue-500 text-white"
+                }`}>
+                  <ChevronRight size={14} />
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+        </Link>
+      );
+    })}
+  </div>
+)}
 
         </main>
       </div>

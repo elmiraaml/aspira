@@ -245,7 +245,7 @@ export default function RieLanding() {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" }}>Rie</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" }}>Aspira</div>
               <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 500, marginTop: -1 }}>Layanan Pengaduan Online</div>
             </div>
           </div>
@@ -308,85 +308,6 @@ export default function RieLanding() {
               {["✅ Terverifikasi Resmi", "🔒 Data Aman & Rahasia", "⚡ Respons 1×24 Jam"].map(t => (
                 <span key={t} style={{ fontSize: 12.5, color: "#6b7280", fontWeight: 500 }}>{t}</span>
               ))}
-            </div>
-          </div>
-
-          {/* RIGHT — UI MOCKUP */}
-          <div style={{ position: "relative" }}>
-            <div style={{
-              background: "#fff",
-              borderRadius: 18,
-              border: "1px solid #e8edf5",
-              boxShadow: "0 20px 60px rgba(37,99,235,0.1)",
-              padding: 24,
-            }}>
-              {/* Header mockup */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Dashboard Pengaduan</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {["Baru", "Proses", "Selesai"].map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                      padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none",
-                      background: activeTab === tab ? "#2563eb" : "#f3f4f6",
-                      color: activeTab === tab ? "#fff" : "#6b7280",
-                      transition: "all 0.2s",
-                    }}>{tab}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Report items */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {mockReports.map(r => (
-                  <div key={r.id} style={{
-                    display: "flex", alignItems: "center", gap: 14,
-                    background: "#f8faff", borderRadius: 10, padding: "12px 14px",
-                    border: "1px solid #e8edf5",
-                  }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: r.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={r.color} strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 2 }}>{r.title}</div>
-                      <div style={{ fontSize: 11.5, color: "#9ca3af" }}>{r.id} · {r.date}</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", fontSize: 11.5, fontWeight: 600, color: r.color }}>
-                      <span className="status-dot" style={{ background: r.color }} />
-                      {r.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Progress bar */}
-              <div style={{ marginTop: 18, padding: "14px 0 0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6b7280", fontWeight: 500, marginBottom: 8 }}>
-                  <span>Tingkat Penyelesaian</span>
-                  <span style={{ color: "#2563eb", fontWeight: 700 }}>98%</span>
-                </div>
-                <div style={{ background: "#e8edf5", borderRadius: 4, height: 6, overflow: "hidden" }}>
-                  <div style={{ width: "98%", height: "100%", background: "linear-gradient(90deg, #2563eb, #60a5fa)", borderRadius: 4 }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Floating badge */}
-            <div style={{
-              position: "absolute", bottom: -16, left: -16,
-              background: "#fff", border: "1px solid #e8edf5",
-              borderRadius: 12, padding: "10px 16px",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-              display: "flex", alignItems: "center", gap: 10,
-            }}>
-              <div style={{ width: 32, height: 32, background: "#dcfce7", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 16 }}>✅</span>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>Pengaduan Terverifikasi</div>
-                <div style={{ fontSize: 11, color: "#9ca3af" }}>Diproses dalam 24 jam</div>
-              </div>
             </div>
           </div>
         </div>

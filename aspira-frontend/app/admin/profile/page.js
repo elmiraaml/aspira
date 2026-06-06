@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../../components/sidebarUser";
 import Navbar from "../../../components/Navbar";
 import { api } from "@/src/lib/api";
 
@@ -159,11 +158,6 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafd]">
-      <Sidebar />
-
-      <div className="flex flex-col flex-1 min-w-0">
-        <Navbar />
 
         <main className="flex-1 px-8 py-7">
 
@@ -295,7 +289,6 @@ export default function ProfilePage() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+ 
   );
 }

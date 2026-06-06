@@ -21,8 +21,6 @@ import {
   Lock,
 } from "lucide-react";
 import { api } from "@/src/lib/api";
-import Sidebar from "@/components/sidebarUser";
-import Navbar from "@/components/Navbar";
 
 export default function UserReportDetailPage() {
   const { id } = useParams();
@@ -144,9 +142,7 @@ export default function UserReportDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#f8fafd]">
-        <Sidebar />
         <div className="flex flex-col flex-1 min-w-0">
-          <Navbar />
           <main className="flex-1 px-8 py-7 flex items-center justify-center min-h-[60vh]">
             <Loader2 size={42} className="text-blue-600 animate-spin" />
           </main>
@@ -158,10 +154,6 @@ export default function UserReportDetailPage() {
   if (!report) {
     return (
       <div className="flex min-h-screen bg-[#f8fafd]">
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0">
-          <Navbar />
-          <main className="flex-1 px-8 py-7">
             <div className="text-center p-16 bg-white rounded-3xl border border-blue-50 shadow-sm flex flex-col items-center">
               <AlertCircle size={48} className="text-red-500 mb-4" />
               <h2 className="text-xl font-bold text-gray-900 mb-2">Laporan tidak ditemukan</h2>
@@ -170,8 +162,6 @@ export default function UserReportDetailPage() {
                 Kembali ke Dashboard
               </Link>
             </div>
-          </main>
-        </div>
       </div>
     );
   }
@@ -181,17 +171,17 @@ export default function UserReportDetailPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-      <Sidebar />
       <div className="flex flex-col flex-1 min-w-0">
-        <Navbar />
-        <main className="flex-1 px-8 py-7">
+<main className="flex-1 px-8 py-7 flex justify-center">
 
-          <div className="max-w-4xl flex flex-col gap-6">
-            {/* Back Button */}
-            <Link href="/user" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all w-fit">
-              <ArrowLeft size={18} />
-              Kembali ke Dashboard
-            </Link>
+  <div className="w-full max-w-4xl flex flex-col gap-6">
+
+            {/* Back Button */} 
+            <div className="w-full flex justify-start"> 
+              <Link href="/user" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all" > 
+              <ArrowLeft size={18} /> Kembali ke Dashboard 
+              </Link> 
+              </div>
 
             {/* Detail Card */}
             <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">

@@ -6,13 +6,12 @@ import Link from "next/link";
 
 import {
   FileText,
-  Clock,
+  Clock3,
   AlertTriangle,
-  CheckCircle,
-  Activity,
+  CheckCircle2,
+  LoaderCircle,
   ArrowRight,
   Eye,
-  Shield,
   TrendingUp,
   Loader2,
 } from "lucide-react";
@@ -186,69 +185,61 @@ export default function AdminDashboardPage() {
         gap: 24,
       }}
     >
-
-
       {/* STATS */}
-      <div style={styles.grid3}>
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard
           title="Total Laporan"
           value={stats.total_reports}
-          icon={<FileText size={18} />}
-          bg="#e8f5ff"
-          color="#004b8d"
+          icon={<FileText size={20} />}
+          bg="bg-blue-50"
+          color="text-blue-600"
         />
 
         <StatCard
           title="Laporan Hari Ini"
           value={stats.today_reports}
-          icon={<TrendingUp size={18} />}
-          bg="#ede9fe"
-          color="#6d28d9"
+          icon={<TrendingUp size={20} />}
+          bg="bg-purple-50"
+          color="text-purple-600"
         />
 
         <StatCard
           title="Pending"
           value={pending}
-          icon={<Clock size={18} />}
-          bg="#fff7d6"
-          color="#b07d00"
+          icon={<Clock3 size={20} />}
+          bg="bg-amber-50"
+          color="text-amber-500"
         />
       </div>
 
       {/* MINI CARDS */}
-      <div style={styles.grid3}>
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <MiniCard
           title="Diproses"
           value={diperiksa}
-          icon={<Activity size={18} />}
-          bg="#e8f5ff"
-          color="#004b8d"
+          icon={<LoaderCircle size={20} />}
+          bg="bg-blue-50"
+          color="text-blue-600"
         />
 
         <MiniCard
           title="Selesai"
           value={selesai}
-          icon={
-            <CheckCircle size={18} />
-          }
-          bg="#e6f9f4"
-          color="#0a7c5c"
+          icon={<CheckCircle2 size={20} />}
+          bg="bg-green-50"
+          color="text-green-600"
         />
 
         <MiniCard
-          title="Butuh Perhatian"
+          title="Ditolak"
           value={
             stats.priority_summary?.find(
-              (p) =>
-                p.priority ===
-                "emergency"
+              (p) => p.priority === "emergency"
             )?.total || 0
           }
-          icon={
-            <AlertTriangle size={18} />
-          }
-          bg="#fde8e8"
-          color="#c0392b"
+          icon={<AlertTriangle size={20} />}
+          bg="bg-red-50"
+          color="text-red-500"
         />
       </div>
 
@@ -256,15 +247,12 @@ export default function AdminDashboardPage() {
       <div style={styles.tableCard}>
         <div style={styles.tableHeader}>
           <div>
+            <p style={styles.sectionLabel}>
+              Aktivitas Terbaru
+            </p>
             <h3 style={styles.sectionTitle}>
               Laporan Terbaru
             </h3>
-
-            <p style={styles.sectionDesc}>
-              Pantau laporan terbaru
-              dan update status dengan
-              cepat
-            </p>
           </div>
 
           <Link
@@ -278,15 +266,8 @@ export default function AdminDashboardPage() {
 
         {recentReports.length > 0 ? (
           recentReports.map((report) => {
-            const status =
-              getStatusStyle(
-                report.status
-              );
-
-            const priority =
-              getPriorityStyle(
-                report.priority
-              );
+            const status = getStatusStyle(report.status);
+            const priority = getPriorityStyle(report.priority);
 
             return (
               <div
@@ -294,40 +275,22 @@ export default function AdminDashboardPage() {
                 style={styles.reportItem}
               >
                 <div>
-                  <h4
-                    style={
-                      styles.reportTitle
-                    }
-                  >
+                  <h4 style={styles.reportTitle}>
                     {report.title}
                   </h4>
 
-                  <p
-                    style={
-                      styles.reportMeta
-                    }
-                  >
+                  <p style={styles.reportMeta}>
                     {report.user_name || "Masyarakat"} •{" "}
-                    {new Date(
-                      report.created_at
-                    ).toLocaleDateString(
-                      "id-ID"
-                    )}
+                    {new Date(report.created_at).toLocaleDateString("id-ID")}
                   </p>
                 </div>
 
-                <div
-                  style={
-                    styles.reportRight
-                  }
-                >
+                <div style={styles.reportRight}>
                   <span
                     style={{
                       ...styles.badge,
-                      background:
-                        priority.bg,
-                      color:
-                        priority.color,
+                      background: priority.bg,
+                      color: priority.color,
                     }}
                   >
                     {priority.label}
@@ -336,10 +299,8 @@ export default function AdminDashboardPage() {
                   <span
                     style={{
                       ...styles.badge,
-                      background:
-                        status.bg,
-                      color:
-                        status.color,
+                      background: status.bg,
+                      color: status.color,
                     }}
                   >
                     {status.label}
@@ -376,69 +337,27 @@ export default function AdminDashboardPage() {
   );
 }
 
-function StatCard({
-  title,
-  value,
-  icon,
-  bg,
-  color,
-}) {
+function StatCard({ title, value, icon, bg, color }) {
   return (
-    <div style={styles.statCard}>
-      <div
-        style={{
-          ...styles.iconBox,
-          background: bg,
-          color,
-        }}
-      >
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className={`w-11 h-11 rounded-xl ${bg} mb-4 flex items-center justify-center ${color}`}>
         {icon}
       </div>
-
-      <p style={styles.cardLabel}>
-        {title}
-      </p>
-
-      <h2 style={styles.cardValue}>
-        {value}
-      </h2>
+      <p className="text-2xl font-semibold text-gray-800">{value}</p>
+      <p className={`text-[11px] mt-0.5 ${color}`}>{title}</p>
     </div>
   );
 }
 
-function MiniCard({
-  title,
-  value,
-  icon,
-  bg,
-  color,
-}) {
+function MiniCard({ title, value, icon, bg, color }) {
   return (
-    <div style={styles.miniCard}>
-      <div
-        style={{
-          ...styles.iconBoxSmall,
-          background: bg,
-          color,
-        }}
-      >
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-3">
+      <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0 ${color}`}>
         {icon}
       </div>
-
       <div>
-        <p style={styles.cardLabel}>
-          {title}
-        </p>
-
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 24,
-            color: "#001f3d",
-          }}
-        >
-          {value}
-        </h3>
+        <p className={`text-[11px] ${color}`}>{title}</p>
+        <p className="text-2xl font-semibold text-gray-800">{value}</p>
       </div>
     </div>
   );
@@ -502,59 +421,6 @@ const styles = {
     gap: 18,
   },
 
-  statCard: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 18,
-    border:
-      "1px solid rgba(0,75,141,0.08)",
-  },
-
-  miniCard: {
-    background: "#fff",
-    padding: 18,
-    borderRadius: 18,
-    border:
-      "1px solid rgba(0,75,141,0.08)",
-
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-  },
-
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-
-  iconBoxSmall: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-
-  cardLabel: {
-    margin: 0,
-    fontSize: 13,
-    color: "#3a5068",
-  },
-
-  cardValue: {
-    margin: "4px 0 0",
-    fontSize: 28,
-    fontWeight: 800,
-    color: "#001f3d",
-  },
-
   tableCard: {
     background: "#fff",
     borderRadius: 20,
@@ -565,17 +431,23 @@ const styles = {
 
   tableHeader: {
     padding: "18px 24px",
-    borderBottom:
-      "1px solid #f1f1e6",
-
+    borderBottom: "1px solid #f1f1e6",
     display: "flex",
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
-  sectionTitle: {
+  sectionLabel: {
     margin: 0,
+    fontSize: 10,
+    fontWeight: 500,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#9ca3af",
+  },
+
+  sectionTitle: {
+    margin: "2px 0 0",
     fontSize: 18,
     fontWeight: 700,
     color: "#001f3d",
@@ -599,44 +471,41 @@ const styles = {
 
   reportItem: {
     padding: "16px 24px",
-    borderBottom:
-      "1px solid #f1f1e6",
-
+    borderBottom: "1px solid #f1f1e6",
     display: "flex",
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
   reportTitle: {
     margin: 0,
-    fontSize: 15,
-    fontWeight: 700,
-    color: "#001f3d",
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#1f2937",
   },
 
   reportMeta: {
     margin: "4px 0 0",
     fontSize: 12,
-    color: "#3a5068",
+    color: "#9ca3af",
   },
 
   reportRight: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
 
   badge: {
-    padding: "5px 12px",
+    padding: "4px 12px",
     borderRadius: 40,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 600,
   },
 
   eyeBtn: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -650,7 +519,6 @@ const styles = {
     padding: 48,
     textAlign: "center",
     color: "#3a5068",
-
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

@@ -28,11 +28,6 @@ export default function SidebarUser() {
     icon: <FileText size={18} />,
   },
 
-  {
-    href: "/superadmin/activity",
-    label: "Activity Log",
-    icon: <Activity size={18} />,
-  },
 
   {
     href: "/superadmin/users",
@@ -44,12 +39,6 @@ export default function SidebarUser() {
     href: "/superadmin/admins",
     label: "Admin Management",
     icon: <UserCog size={18} />,
-  },
-
-  {
-    href: "/superadmin/audit",
-    label: "Audit Log",
-    icon: <ShieldCheck size={18} />,
   },
 ];
 

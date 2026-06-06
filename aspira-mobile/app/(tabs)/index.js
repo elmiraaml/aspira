@@ -9,6 +9,7 @@ export default function Home() {
   const [pengaduan, setPengaduan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [userName, setUserName] = useState("Pengguna");
 
   const fetchReports = async () => {
     try {
@@ -16,6 +17,13 @@ export default function Home() {
       if (!token) {
         router.replace("/(auth)/login");
         return;
+      }
+
+      // Load user name dari AsyncStorage
+      const userRaw = await AsyncStorage.getItem("user");
+      if (userRaw) {
+        const user = JSON.parse(userRaw);
+        setUserName(user.fullname || user.name || "Pengguna");
       }
       
       const res = await api.get("/reports/my", {
@@ -61,10 +69,14 @@ export default function Home() {
       style={{ flex: 1, backgroundColor: "#f8fafd" }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={{ padding: 24, paddingTop: 60, backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" }}>
-        <Text style={{ fontSize: 14, color: "#6b7280", fontWeight: "500", textTransform: "uppercase", letterSpacing: 1 }}>Dashboard</Text>
-        <Text style={{ fontSize: 24, color: "#111827", fontWeight: "bold", marginTop: 4 }}>Pengaduan Saya</Text>
-      </View>
+{/* HEADER */}
+<View style={{ padding: 24, paddingTop: 60, backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" }}>
+  <Text style={{ fontSize: 14, color: "#6b7280", fontWeight: "500", textTransform: "uppercase", letterSpacing: 1 }}>Dashboard</Text>
+
+  <Text style={{ fontSize: 24, color: "#111827", fontWeight: "bold", marginTop: 4 }}>
+    Halo, {userName} 👋
+  </Text>
+</View>
 
       <View style={{ padding: 20 }}>
         {/* STATS */}

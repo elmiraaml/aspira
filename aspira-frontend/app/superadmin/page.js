@@ -82,31 +82,33 @@ export default function SuperAdminDashboardPage() {
   };
 
   const statCards = [
-    { label: "Total User", value: stats.totalUsers, icon: <Users size={18} />, bg: "#e8f5ff", color: "#004b8d" },
-    { label: "Total Admin", value: stats.totalAdmins, icon: <Shield size={18} />, bg: "#ede9fe", color: "#6d28d9" },
-    { label: "Total Laporan", value: stats.totalReports, icon: <FileText size={18} />, bg: "#f1f1e6", color: "#004b8d" },
+    { label: "Total User", value: stats.totalUsers, icon: <Users size={20} />, bg: "bg-blue-50", color: "text-blue-600" },
+    { label: "Total Admin", value: stats.totalAdmins, icon: <Shield size={20} />, bg: "bg-purple-50", color: "text-purple-600" },
+    { label: "Total Laporan", value: stats.totalReports, icon: <FileText size={20} />, bg: "bg-blue-50", color: "text-blue-600" },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
       {/* Stats Grid */}
-      <div style={styles.grid3}>
+      <div className="grid grid-cols-3 gap-4 mb-6">
         {statCards.map((card) => (
-          <div key={card.label} style={styles.statCard}>
-            <div style={{ ...styles.iconBox, background: card.bg, color: card.color }}>{card.icon}</div>
-            <p style={styles.cardLabel}>{card.label}</p>
-            <h3 style={styles.cardValue}>{card.value}</h3>
+          <div key={card.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className={`w-11 h-11 rounded-xl ${card.bg} mb-4 flex items-center justify-center ${card.color}`}>
+              {card.icon}
+            </div>
+            <p className="text-2xl font-semibold text-gray-800">{card.value}</p>
+            <p className={`text-[11px] mt-0.5 ${card.color}`}>{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* Mini Status Cards */}
-      <div style={styles.grid4}>
-        <MiniStatusCard title="Hari Ini" value={stats.todayReports} icon={<TrendingUp size={18} />} color="#6d28d9" bg="#ede9fe" />
-        <MiniStatusCard title="Menunggu" value={stats.pendingReports} icon={<Clock size={18} />} color="#b07d00" bg="#fff7d6" />
-        <MiniStatusCard title="Diproses" value={stats.processReports} icon={<Activity size={18} />} color="#004b8d" bg="#e8f5ff" />
-        <MiniStatusCard title="Selesai" value={stats.selesaiReports} icon={<CheckCircle size={18} />} color="#0a7c5c" bg="#e6f9f4" />
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <MiniStatusCard title="Hari Ini" value={stats.todayReports} icon={<TrendingUp size={20} />} color="text-purple-600" bg="bg-purple-50" />
+        <MiniStatusCard title="Menunggu" value={stats.pendingReports} icon={<Clock size={20} />} color="text-amber-500" bg="bg-amber-50" />
+        <MiniStatusCard title="Diproses" value={stats.processReports} icon={<Activity size={20} />} color="text-blue-600" bg="bg-blue-50" />
+        <MiniStatusCard title="Selesai" value={stats.selesaiReports} icon={<CheckCircle size={20} />} color="text-green-600" bg="bg-green-50" />
       </div>
 
       {/* Recent Reports */}
@@ -158,11 +160,13 @@ export default function SuperAdminDashboardPage() {
 
 function MiniStatusCard({ title, value, icon, color, bg }) {
   return (
-    <div style={styles.miniCard}>
-      <div style={{ ...styles.iconBoxSmall, background: bg, color }}>{icon}</div>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-3">
+      <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center flex-shrink-0 ${color}`}>
+        {icon}
+      </div>
       <div>
-        <p style={styles.cardLabel}>{title}</p>
-        <h3 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#001f3d" }}>{value}</h3>
+        <p className={`text-[11px] ${color}`}>{title}</p>
+        <p className="text-2xl font-semibold text-gray-800">{value}</p>
       </div>
     </div>
   );
@@ -177,12 +181,6 @@ const styles = {
   heroFeatures: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 },
   grid3: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 },
   grid4: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 },
-  statCard: { background: "#fff", borderRadius: 18, padding: 20, border: "1px solid rgba(0,75,141,0.08)" },
-  miniCard: { background: "#fff", borderRadius: 18, padding: 18, border: "1px solid rgba(0,75,141,0.08)", display: "flex", alignItems: "center", gap: 14 },
-  iconBox: { width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 },
-  iconBoxSmall: { width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  cardLabel: { fontSize: 13, color: "#3a5068", marginBottom: 4 },
-  cardValue: { fontSize: 28, fontWeight: 800, color: "#001f3d", margin: 0 },
   tableCard: { background: "#fff", borderRadius: 20, border: "1px solid rgba(0,75,141,0.08)", overflow: "hidden" },
   tableHeader: { padding: "18px 24px", borderBottom: "1px solid #f1f1e6", display: "flex", justifyContent: "space-between", alignItems: "center" },
   sectionTitle: { margin: 0, fontSize: 18, fontWeight: 700, color: "#001f3d" },

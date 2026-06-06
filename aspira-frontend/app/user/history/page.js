@@ -118,10 +118,10 @@ export default function MyReportsPage() {
           {/* HEADER — sama persis gaya dashboard */}
           <div className="mb-6">
             <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
-              Riwayat
+              Riwayat Pengaduan
             </p>
             <h3 className="text-lg text-gray-800 font-semibold">
-              Laporan Saya
+              History
             </h3>
           </div>
 

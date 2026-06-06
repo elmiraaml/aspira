@@ -49,7 +49,7 @@ export default function SidebarUser() {
 
   {
     href: "/user/active-cases",
-    label: "My Reports",
+    label: "Active Cases",
     icon: (
       <svg
         className="w-[18px] h-[18px]"
