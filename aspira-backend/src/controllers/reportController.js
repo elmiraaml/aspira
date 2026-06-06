@@ -129,9 +129,9 @@ exports.getCategories = async (req, res) => {
 
 
 // GET DETAIL REPORT
+// GET DETAIL REPORT
 exports.getReportById = async (req, res) => {
   try {
-
     const { id } = req.params;
 
     const [reports] = await db.query(
@@ -139,38 +139,26 @@ exports.getReportById = async (req, res) => {
       SELECT
         reports.*,
         users.fullname,
+        users.email,
         categories.name AS category_name
-
       FROM reports
-
-      JOIN users
-      ON reports.user_id = users.id
-
-      JOIN categories
-      ON reports.category_id = categories.id
-
+      JOIN users ON reports.user_id = users.id
+      JOIN categories ON reports.category_id = categories.id
       WHERE reports.id = ?
       `,
       [id]
     );
 
     if (reports.length === 0) {
-      return res.status(404).json({
-        message: "Laporan tidak ditemukan",
-      });
+      return res.status(404).json({ message: "Laporan tidak ditemukan" });
     }
 
     res.status(200).json(reports[0]);
-
   } catch (error) {
     console.log(error);
-
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // UPDATE REPORT
 exports.updateReport = async (req, res) => {
