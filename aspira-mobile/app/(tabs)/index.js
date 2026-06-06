@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 export default function Home() {
   const [pengaduan, setPengaduan] = useState([]);
@@ -14,22 +14,18 @@ export default function Home() {
   const fetchReports = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        router.replace("/(auth)/login");
-        return;
-      }
+      if (!token) return;
 
-      // Load user name dari AsyncStorage
       const userRaw = await AsyncStorage.getItem("user");
       if (userRaw) {
         const user = JSON.parse(userRaw);
         setUserName(user.fullname || user.name || "Pengguna");
       }
-      
+
       const res = await api.get("/reports/my", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (Array.isArray(res.data)) {
         setPengaduan(res.data);
       }
@@ -41,9 +37,11 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReports();
+    }, [])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -65,18 +63,17 @@ export default function Home() {
   ];
 
   return (
-    <ScrollView 
+    <ScrollView
       style={{ flex: 1, backgroundColor: "#f8fafd" }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-{/* HEADER */}
-<View style={{ padding: 24, paddingTop: 60, backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" }}>
-  <Text style={{ fontSize: 14, color: "#6b7280", fontWeight: "500", textTransform: "uppercase", letterSpacing: 1 }}>Dashboard</Text>
-
-  <Text style={{ fontSize: 24, color: "#111827", fontWeight: "bold", marginTop: 4 }}>
-    Halo, {userName} 👋
-  </Text>
-</View>
+      {/* HEADER */}
+      <View style={{ padding: 24, paddingTop: 60, backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" }}>
+        <Text style={{ fontSize: 14, color: "#6b7280", fontWeight: "500", textTransform: "uppercase", letterSpacing: 1 }}>Dashboard</Text>
+        <Text style={{ fontSize: 24, color: "#111827", fontWeight: "bold", marginTop: 4 }}>
+          Halo, {userName} 👋
+        </Text>
+      </View>
 
       <View style={{ padding: 20 }}>
         {/* STATS */}
@@ -98,7 +95,7 @@ export default function Home() {
             <Text style={{ fontSize: 12, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1, fontWeight: "500", marginBottom: 2 }}>Aktivitas Terbaru</Text>
             <Text style={{ fontSize: 18, color: "#1f2937", fontWeight: "bold" }}>Daftar Pengaduan</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={{ backgroundColor: "#2563eb", flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 }}
             onPress={() => router.push("/(tabs)/create")}
           >
@@ -120,20 +117,20 @@ export default function Home() {
           </View>
         ) : (
           recentPengaduan.map((item) => (
-            <TouchableOpacity 
-              key={item.id} 
+            <TouchableOpacity
+              key={item.id}
               onPress={() => router.push(`/report/${item.id}`)}
               style={{ backgroundColor: "#ffffff", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f3f4f6" }}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: "bold", color: "#111827", flex: 1 }} numberOfLines={1}>{item.title}</Text>
-                <View style={{ 
+                <View style={{
                   backgroundColor: item.status === "selesai" ? "#dcfce7" : item.status === "pending" ? "#fef3c7" : "#f3e8ff",
                   paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20
                 }}>
-                  <Text style={{ 
+                  <Text style={{
                     fontSize: 12, fontWeight: "bold",
-                    color: item.status === "selesai" ? "#16a34a" : item.status === "pending" ? "#d97706" : "#9333ea" 
+                    color: item.status === "selesai" ? "#16a34a" : item.status === "pending" ? "#d97706" : "#9333ea"
                   }}>
                     {item.status.toUpperCase()}
                   </Text>

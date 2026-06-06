@@ -120,7 +120,7 @@ export default function ActiveCasesScreen() {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push(`/user/report/${item.id}`)}
+        onPress={() => router.push(`/report/${item.id}`)}
         activeOpacity={0.85}
       >
         <View style={[styles.accentBar, { backgroundColor: accent }]} />
@@ -194,7 +194,7 @@ export default function ActiveCasesScreen() {
           </Text>
           <TouchableOpacity
             style={styles.createButton}
-            onPress={() => router.push("/user/create-report")}
+            onPress={() => router.push("/(tabs)/create")}
           >
             <Text style={styles.createButtonText}>+ Buat Laporan</Text>
           </TouchableOpacity>

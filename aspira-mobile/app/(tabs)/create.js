@@ -101,6 +101,16 @@ function SectionLabel({ iconName, iconColor, iconBg, label }) {
   );
 }
 
+// ── Nilai form kosong ──
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  category_id: "",
+  location: "",
+  incident_date: "",
+  image: null,
+};
+
 // ── Main ──
 export default function Create() {
   const [categories, setCategories] = useState([]);
@@ -108,15 +118,12 @@ export default function Create() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedTitle, setSubmittedTitle] = useState("");
+  const [inAppAlert, setInAppAlert] = useState({ type: "", message: "" });
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category_id: "",
-    location: "",
-    incident_date: new Date().toISOString().split("T")[0], // simpan sebagai string "YYYY-MM-DD"
-    image: null,
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  // State untuk DateTimePicker mobile
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => { fetchCategories(); }, []);
 
@@ -124,9 +131,9 @@ export default function Create() {
     try {
       const res = await api.get("/reports/categories");
       if (Array.isArray(res.data)) setCategories(res.data);
-      else Alert.alert("Error", "Gagal memuat kategori");
+      else setInAppAlert({ type: "error", message: "Gagal memuat kategori" });
     } catch {
-      Alert.alert("Error", "Gagal memuat kategori, coba lagi");
+      setInAppAlert({ type: "error", message: "Gagal memuat kategori, coba lagi" });
     } finally {
       setLoadingCats(false);
     }
@@ -134,9 +141,13 @@ export default function Create() {
 
   const updateField = (key, value) => setFormData((prev) => ({ ...prev, [key]: value }));
 
+  // ── Alert di dalam app (kotak merah/hijau di UI) ──
+  const showAlert = (type, message) => {
+    setInAppAlert({ type, message });
+  };
+
   const handlePickImage = async () => {
     if (Platform.OS === "web") {
-      // Web: pakai input file HTML
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
@@ -144,7 +155,7 @@ export default function Create() {
         const file = e.target.files[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-          Alert.alert("File Terlalu Besar", "Ukuran gambar maksimal 5MB");
+          showAlert("error", "Ukuran gambar maksimal 5MB");
           return;
         }
         const uri = URL.createObjectURL(file);
@@ -156,7 +167,7 @@ export default function Create() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Izin Ditolak", "Kami membutuhkan izin akses galeri.");
+      showAlert("error", "Kami membutuhkan izin akses galeri.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -165,25 +176,49 @@ export default function Create() {
     if (!result.canceled) {
       const asset = result.assets[0];
       if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-        Alert.alert("File Terlalu Besar", "Ukuran gambar maksimal 5MB");
+        showAlert("error", "Ukuran gambar maksimal 5MB");
         return;
       }
       updateField("image", asset);
     }
   };
 
-  const handleSubmit = async () => {
+  // ── Validasi per-field ──
+  const validate = () => {
     const { title, description, category_id, location, incident_date } = formData;
-    if (!title.trim() || !description.trim() || !category_id || !location.trim()) {
-      Alert.alert("Error", "Harap isi semua kolom yang wajib!");
-      return;
+
+    if (!title.trim()) {
+      showAlert("error", "Judul laporan wajib diisi.");
+      return false;
     }
+    if (!description.trim()) {
+      showAlert("error", "Deskripsi kejadian wajib diisi.");
+      return false;
+    }
+    if (!category_id) {
+      showAlert("error", "Kategori laporan wajib dipilih.");
+      return false;
+    }
+    if (!location.trim()) {
+      showAlert("error", "Lokasi kejadian wajib diisi.");
+      return false;
+    }
+    if (!incident_date) {
+      showAlert("error", "Tanggal kejadian wajib diisi.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    setInAppAlert({ type: "", message: "" });
+    if (!validate()) return;
 
     setSubmitting(true);
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
-        Alert.alert("Error", "Anda harus login terlebih dahulu");
+        showAlert("error", "Anda harus login terlebih dahulu");
         router.replace("/(auth)/login");
         return;
       }
@@ -209,11 +244,11 @@ export default function Create() {
       const res = await api.post(
         "/reports",
         {
-          category_id: String(category_id),
-          title: title.trim(),
-          description: description.trim(),
-          location: location.trim(),
-          incident_date,
+          category_id: String(formData.category_id),
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          location: formData.location.trim(),
+          incident_date: formData.incident_date,
           image: imageUrl,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -222,19 +257,32 @@ export default function Create() {
       console.log("Response:", res.status, res.data);
 
       if (res.status === 201 || res.status === 200) {
-        setSubmittedTitle(title.trim());
+        const sentTitle = formData.title.trim();
+
+        // ── Reset semua field ──
+        setFormData(EMPTY_FORM);
+        setInAppAlert({ type: "", message: "" });
+
+        setSubmittedTitle(sentTitle);
         setShowSuccess(true);
         setTimeout(() => {
-          setShowSuccess(false);
-          router.push("/(tabs)");
-        }, 3000);
+  setShowSuccess(false);
+  router.replace("/(tabs)");
+}, 3000);
       }
     } catch (err) {
       console.log("Submit error:", err.response?.data || err.message);
-      Alert.alert("Error", err.response?.data?.message || "Gagal mengirim laporan");
+      showAlert("error", err.response?.data?.message || "Gagal mengirim laporan");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // ── Format tanggal "YYYY-MM-DD" → "MM/DD/YYYY" untuk tampilan ──
+  const formatDateDisplay = (isoDate) => {
+    if (!isoDate) return "";
+    const [year, month, day] = isoDate.split("-");
+    return `${month}/${day}/${year}`;
   };
 
   const cardStyle = {
@@ -262,9 +310,32 @@ export default function Create() {
 
         <View style={{ padding: 20 }}>
 
+          {/* IN-APP ALERT */}
+          {inAppAlert.message ? (
+            <View style={{
+              flexDirection: "row", alignItems: "center", gap: 10,
+              marginBottom: 16, padding: 14, borderRadius: 16,
+              borderWidth: 1,
+              backgroundColor: inAppAlert.type === "success" ? "#f0fdf4" : "#fef2f2",
+              borderColor: inAppAlert.type === "success" ? "#bbf7d0" : "#fecaca",
+            }}>
+              <Feather
+                name={inAppAlert.type === "success" ? "check-circle" : "alert-circle"}
+                size={16}
+                color={inAppAlert.type === "success" ? "#16a34a" : "#dc2626"}
+              />
+              <Text style={{
+                fontSize: 13, fontWeight: "500", flex: 1,
+                color: inAppAlert.type === "success" ? "#16a34a" : "#dc2626",
+              }}>
+                {inAppAlert.message}
+              </Text>
+            </View>
+          ) : null}
+
           {/* JUDUL */}
           <View style={cardStyle}>
-            <SectionLabel iconName="file-text" iconColor="#9333ea" iconBg="#faf5ff" label="Judul Laporan" />
+            <SectionLabel iconName="file-text" iconColor="#9333ea" iconBg="#faf5ff" label="Judul Laporan *" />
             <TextInput
               placeholder="Masukkan judul laporan..."
               placeholderTextColor="#9ca3af"
@@ -276,7 +347,7 @@ export default function Create() {
 
           {/* DESKRIPSI */}
           <View style={cardStyle}>
-            <SectionLabel iconName="align-left" iconColor="#d97706" iconBg="#fef3c7" label="Deskripsi" />
+            <SectionLabel iconName="align-left" iconColor="#d97706" iconBg="#fef3c7" label="Deskripsi *" />
             <TextInput
               placeholder="Jelaskan kejadian secara lengkap dan jelas..."
               placeholderTextColor="#9ca3af"
@@ -289,11 +360,10 @@ export default function Create() {
 
           {/* KATEGORI */}
           <View style={cardStyle}>
-            <SectionLabel iconName="tag" iconColor="#2563eb" iconBg="#eff6ff" label="Kategori" />
+            <SectionLabel iconName="tag" iconColor="#2563eb" iconBg="#eff6ff" label="Kategori *" />
             {loadingCats ? (
               <ActivityIndicator color="#2563eb" style={{ marginVertical: 8 }} />
             ) : Platform.OS === "web" ? (
-              // Web: pakai select HTML native
               <select
                 value={formData.category_id}
                 onChange={(e) => updateField("category_id", e.target.value)}
@@ -327,7 +397,7 @@ export default function Create() {
 
           {/* LOKASI */}
           <View style={cardStyle}>
-            <SectionLabel iconName="map-pin" iconColor="#16a34a" iconBg="#dcfce7" label="Lokasi Kejadian" />
+            <SectionLabel iconName="map-pin" iconColor="#16a34a" iconBg="#dcfce7" label="Lokasi Kejadian *" />
             <TextInput
               placeholder="Contoh: Jakarta Timur"
               placeholderTextColor="#9ca3af"
@@ -337,15 +407,16 @@ export default function Create() {
             />
           </View>
 
-          {/* TANGGAL - web pakai input date HTML */}
+          {/* TANGGAL */}
           <View style={cardStyle}>
-            <SectionLabel iconName="calendar" iconColor="#2563eb" iconBg="#eff6ff" label="Tanggal Kejadian" />
+            <SectionLabel iconName="calendar" iconColor="#2563eb" iconBg="#eff6ff" label="Tanggal Kejadian *" />
             {Platform.OS === "web" ? (
               <input
                 type="date"
                 value={formData.incident_date}
                 max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => updateField("incident_date", e.target.value)}
+                required
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 12,
                   border: "1px solid #f3f4f6", backgroundColor: "#f9fafb",
@@ -354,30 +425,33 @@ export default function Create() {
                 }}
               />
             ) : (
-              // Mobile tetap pakai DateTimePicker
               (() => {
                 const DateTimePicker = require("@react-native-community/datetimepicker").default;
-                const [showPicker, setShowPicker] = useState(false);
-                const dateObj = new Date(formData.incident_date);
+                const dateForPicker = formData.incident_date
+                  ? new Date(formData.incident_date)
+                  : new Date();
+
                 return (
                   <>
                     <TouchableOpacity
-                      onPress={() => setShowPicker(true)}
+                      onPress={() => setShowDatePicker(true)}
                       style={[inputStyle, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}
                     >
-                      <Text style={{ fontSize: 15, color: "#374151" }}>
-                        {dateObj.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                      <Text style={{ fontSize: 15, color: formData.incident_date ? "#374151" : "#9ca3af" }}>
+                        {formData.incident_date
+                          ? formatDateDisplay(formData.incident_date)
+                          : "mm/dd/yyyy"}
                       </Text>
                       <Feather name="calendar" size={16} color="#9ca3af" />
                     </TouchableOpacity>
-                    {showPicker && (
+                    {showDatePicker && (
                       <DateTimePicker
-                        value={dateObj}
+                        value={dateForPicker}
                         mode="date"
                         display="default"
                         maximumDate={new Date()}
                         onChange={(event, selectedDate) => {
-                          setShowPicker(Platform.OS === "ios");
+                          setShowDatePicker(Platform.OS === "ios");
                           if (event.type === "set" && selectedDate) {
                             updateField("incident_date", selectedDate.toISOString().split("T")[0]);
                           }

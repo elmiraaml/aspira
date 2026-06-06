@@ -121,17 +121,27 @@ export default function ReportDetail() {
         
         {/* REPORT CARD */}
         <View style={{ backgroundColor: "#ffffff", borderRadius: 20, padding: 20, marginBottom: 24, borderWidth: 1, borderColor: "#f3f4f6" }}>
-          {/* Header Info */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-            <View style={{ flex: 1, paddingRight: 12 }}>
-              <Text style={{ fontSize: 22, fontWeight: "bold", color: "#111827", marginBottom: 8 }}>{report.title}</Text>
-              <Text style={{ fontSize: 13, color: "#6b7280" }}>Dilaporkan oleh: <Text style={{ fontWeight: "600", color: "#374151" }}>{report.fullname}</Text></Text>
-            </View>
-            <View style={{ backgroundColor: statusStyle.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-              <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report.status.toUpperCase()}</Text>
-            </View>
-          </View>
-
+         {/* Header Info */}
+<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+  <View style={{ flex: 1, paddingRight: 12 }}>
+    <Text style={{ fontSize: 22, fontWeight: "bold", color: "#111827", marginBottom: 8 }}>{report.title}</Text>
+    <Text style={{ fontSize: 13, color: "#6b7280" }}>Dilaporkan oleh: <Text style={{ fontWeight: "600", color: "#374151" }}>{report.fullname}</Text></Text>
+  </View>
+  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+    {report.status === "pending" && (
+      <TouchableOpacity
+        onPress={() => router.push(`/report/edit/${id}`)}
+        style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#eff6ff", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 4 }}
+      >
+        <Feather name="edit-2" size={11} color="#2563eb" />
+        <Text style={{ fontSize: 11, fontWeight: "600", color: "#2563eb" }}>Edit</Text>
+      </TouchableOpacity>
+    )}
+    <View style={{ backgroundColor: statusStyle.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
+      <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report.status.toUpperCase()}</Text>
+    </View>
+  </View>
+</View>
           {/* Meta Info */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16, marginBottom: 8 }}>
