@@ -37,6 +37,12 @@ exports.getDashboardStats = async (req, res) => {
       `
     );
 
+const [rejectedReports] = await db.query(
+  `SELECT COUNT(*) AS total 
+  FROM reports 
+  WHERE status = 'rejected'`
+);
+
     // total users
     const [totalUsers] = await db.query(
       `
@@ -65,14 +71,15 @@ exports.getDashboardStats = async (req, res) => {
     );
 
     res.status(200).json({
-      total_reports: totalReports[0].total,
-      pending_reports: pendingReports[0].total,
-      process_reports: processReports[0].total,
-      completed_reports: completedReports[0].total,
-      total_users: totalUsers[0].total,
-      total_admins: totalAdmins[0].total,
-      today_reports: todayReports[0].total,
-    });
+  total_reports: totalReports[0].total,
+  pending_reports: pendingReports[0].total,
+  process_reports: processReports[0].total,
+  completed_reports: completedReports[0].total,
+  rejected_reports: rejectedReports[0].total,
+  total_users: totalUsers[0].total,
+  total_admins: totalAdmins[0].total,
+  today_reports: todayReports[0].total,
+});
 
   } catch (error) {
     console.log(error);

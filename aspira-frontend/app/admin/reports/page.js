@@ -1,9 +1,8 @@
-// app/admin/reports/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Eye, RefreshCcw, AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { Search, Eye, RefreshCcw, AlertTriangle, CheckCircle, Clock, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/src/lib/api";
 
 const API = "http://localhost:5000/api";
@@ -14,6 +13,7 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const fetchReports = async () => {
     try {
@@ -46,8 +46,11 @@ export default function AdminReportsPage() {
     if (statusFilter !== "all") {
       temp = temp.filter((r) => r.status === statusFilter);
     }
+    if (categoryFilter !== "all") {
+      temp = temp.filter((r) => r.category_name === categoryFilter);
+    }
     setFiltered(temp);
-  }, [search, statusFilter, reports]);
+  }, [search, statusFilter, categoryFilter, reports]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -60,6 +63,21 @@ export default function AdminReportsPage() {
         fetchReports();
       } else {
         alert("Error dari server: " + JSON.stringify(res));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi error");
+    }
+  };
+
+  const deleteReport = async (id) => {
+    if (!confirm("Yakin hapus laporan ini?")) return;
+    try {
+      const res = await api(`/reports/${id}`, { method: "DELETE" });
+      if (res.message && res.message.includes("berhasil")) {
+        fetchReports();
+      } else {
+        alert("Gagal hapus: " + JSON.stringify(res));
       }
     } catch (err) {
       console.error(err);
@@ -88,6 +106,8 @@ export default function AdminReportsPage() {
     return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status };
   };
 
+  const categories = [...new Set(reports.map((r) => r.category_name).filter(Boolean))];
+
   if (loading) {
     return (
       <div style={styles.loadingWrap}>
@@ -114,6 +134,12 @@ export default function AdminReportsPage() {
           <option value="tindak_lanjut">Tindak Lanjut</option>
           <option value="selesai">Selesai</option>
           <option value="rejected">Ditolak</option>
+        </select>
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={styles.select}>
+          <option value="all">Semua Kategori</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
         <button onClick={fetchReports} style={styles.refreshBtn}>
           <RefreshCcw size={16} />
@@ -151,9 +177,6 @@ export default function AdminReportsPage() {
                     <td style={styles.td}>{new Date(report.created_at).toLocaleDateString("id-ID")}</td>
                     <td style={styles.td}>
                       <div style={styles.actionWrap}>
-                        <Link href={`/admin/reports/${report.id}`} style={styles.detailBtn}>
-                          <Eye size={15} />
-                        </Link>
                         <select value={report.status} onChange={(e) => updateStatus(report.id, e.target.value)} style={styles.statusSelect}>
                           <option value="pending">Pending</option>
                           <option value="diproses">Diproses</option>
@@ -162,6 +185,9 @@ export default function AdminReportsPage() {
                           <option value="selesai">Selesai</option>
                           <option value="rejected">Ditolak</option>
                         </select>
+                        <Link href={`/admin/reports/${report.id}`} style={styles.detailBtn}>
+                          <Eye size={15} />
+                        </Link>
                       </div>
                     </td>
                   </tr>
@@ -196,6 +222,7 @@ const styles = {
   badge: { padding: "5px 12px", borderRadius: 40, fontSize: 12, fontWeight: 600 },
   actionWrap: { display: "flex", alignItems: "center", gap: 8 },
   detailBtn: { width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10, background: "#e8f5ff", color: "#004b8d", textDecoration: "none" },
+  deleteBtn: { width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10, background: "#fde8e8", color: "#c0392b", border: "none", cursor: "pointer" },
   statusSelect: { padding: "8px 10px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 },
   empty: { textAlign: "center", padding: 48, color: "#3a5068" },
 };

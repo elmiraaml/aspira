@@ -33,17 +33,15 @@ export default function AdminDashboardPage() {
 
         if (statsData) {
           setStats({
-            total_reports: statsData.total_reports || 0,
-            today_reports: 0, // not provided yet by backend, could be added later
-            status_summary: [
-              { status: "pending", total: statsData.pending_reports || 0 },
-              { status: "diproses", total: statsData.process_reports || 0 },
-              { status: "selesai", total: statsData.completed_reports || 0 },
-            ],
-            priority_summary: [
-              { priority: "emergency", total: 0 } // feature not fully implemented in db yet
-            ]
-          });
+  total_reports: statsData.total_reports || 0,
+  today_reports: statsData.today_reports || 0,
+  status_summary: [
+    { status: "pending", total: statsData.pending_reports || 0 },
+    { status: "diproses", total: statsData.process_reports || 0 },
+    { status: "selesai", total: statsData.completed_reports || 0 },
+    { status: "rejected", total: statsData.rejected_reports || 0 },
+  ],
+});
         }
 
         if (Array.isArray(reportsData)) {
@@ -96,6 +94,12 @@ export default function AdminDashboardPage() {
     stats.status_summary?.find(
       (s) => s.status === "selesai"
     )?.total || 0;
+
+
+   const rejected =
+  stats.status_summary?.find(
+    (s) => s.status === "rejected"
+  )?.total || 0;
 
   const getStatusStyle = (status) => {
     const map = {
@@ -230,17 +234,13 @@ export default function AdminDashboardPage() {
           color="text-green-600"
         />
 
-        <MiniCard
-          title="Ditolak"
-          value={
-            stats.priority_summary?.find(
-              (p) => p.priority === "emergency"
-            )?.total || 0
-          }
-          icon={<AlertTriangle size={20} />}
-          bg="bg-red-50"
-          color="text-red-500"
-        />
+       <MiniCard
+  title="Ditolak"
+  value={rejected}
+  icon={<AlertTriangle size={20} />}
+  bg="bg-red-50"
+  color="text-red-500"
+/>
       </div>
 
       {/* REPORTS */}

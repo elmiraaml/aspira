@@ -274,17 +274,6 @@ export default function AdminReportDetailPage() {
           <p style={styles.desc}>{report.description}</p>
         </div>
 
-        {report.image || report.bukti_foto ? (
-          <div style={styles.imageBox}>
-            <ImageIcon size={18} color="#004b8d" />
-            <img
-              src={report.image || report.bukti_foto}
-              alt="Bukti Foto"
-              style={styles.image}
-            />
-          </div>
-        ) : null}
-
         <div style={styles.metaGrid}>
           <MetaItem
             icon={<User size={16} />}
@@ -316,7 +305,18 @@ export default function AdminReportDetailPage() {
             value={formatDateTime(report.created_at)}
           />
         </div>
-      </div>
+
+    {report.image || report.bukti_foto ? (
+          <div style={styles.imageBox}>
+            <ImageIcon size={18} color="#004b8d" />
+            <img
+              src={report.image || report.bukti_foto}
+              alt="Bukti Foto"
+              style={styles.image}
+            />
+          </div>
+        ) : null}
+          </div>
 
       {/* UPDATE STATUS */}
       <div style={styles.card}>
@@ -500,7 +500,7 @@ function MetaItem({ icon, label, value }) {
           width: 32,
           height: 32,
           borderRadius: 10,
-          background: "#e8f5ff",
+          background: "#e8f5f f",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
