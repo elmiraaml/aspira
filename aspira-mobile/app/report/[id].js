@@ -26,7 +26,10 @@ export default function ReportDetail() {
       setLoading(true);
       // Fetch report detail
       const resReport = await api.get(`/reports/${id}`);
-      setReport(resReport.data);
+      const reportData = Array.isArray(resReport.data) && resReport.data.length > 0 
+        ? resReport.data[0] 
+        : resReport.data;
+      setReport(reportData);
 
       // Fetch comments
       const resComments = await api.get(`/comments/report/${id}`);
@@ -138,7 +141,7 @@ export default function ReportDetail() {
       </TouchableOpacity>
     )}
     <View style={{ backgroundColor: statusStyle.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-      <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report.status.toUpperCase()}</Text>
+      <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report?.status?.toUpperCase() || "UNKNOWN"}</Text>
     </View>
   </View>
 </View>
@@ -147,6 +150,12 @@ export default function ReportDetail() {
             <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16, marginBottom: 8 }}>
               <Feather name="tag" size={14} color="#2563eb" />
               <Text style={{ fontSize: 13, color: "#4b5563", marginLeft: 6 }}>{report.category_name}</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16, marginBottom: 8 }}>
+              <Feather name="alert-circle" size={14} color={report.priority === 'high' ? '#ef4444' : report.priority === 'medium' ? '#f59e0b' : '#3b82f6'} />
+              <Text style={{ fontSize: 13, color: report.priority === 'high' ? '#ef4444' : report.priority === 'medium' ? '#f59e0b' : '#3b82f6', marginLeft: 6, fontWeight: "500" }}>
+                Prioritas {report.priority === 'high' ? 'Tinggi' : report.priority === 'medium' ? 'Sedang' : 'Rendah'}
+              </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16, marginBottom: 8 }}>
               <Feather name="calendar" size={14} color="#d97706" />

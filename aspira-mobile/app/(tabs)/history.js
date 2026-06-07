@@ -75,6 +75,8 @@ export default function History() {
         ) : (
           reports.map((item) => {
             const statusConfig = getStatusColor(item.status);
+            const pColor = item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6';
+            const pText = item.priority === 'high' ? 'Tinggi' : item.priority === 'medium' ? 'Sedang' : 'Rendah';
             return (
               <TouchableOpacity 
                 key={item.id} 
@@ -85,6 +87,12 @@ export default function History() {
                   <Text style={{ fontSize: 16, fontWeight: "bold", color: "#111827", marginBottom: 4 }} numberOfLines={1}>
                     {item.title}
                   </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: pColor, marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, color: pColor, fontWeight: "500", marginRight: 8 }}>
+                      Prioritas {pText}
+                    </Text>
+                  </View>
                   <Text style={{ fontSize: 12, color: "#9ca3af" }}>
                     {item.category_name} • {item.incident_date ? item.incident_date.split('T')[0] : "-"}
                   </Text>

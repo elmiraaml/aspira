@@ -108,6 +108,7 @@ const EMPTY_FORM = {
   category_id: "",
   location: "",
   incident_date: "",
+  priority: "low",
   image: null,
 };
 
@@ -249,6 +250,7 @@ export default function Create() {
           description: formData.description.trim(),
           location: formData.location.trim(),
           incident_date: formData.incident_date,
+          priority: formData.priority,
           image: imageUrl,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -461,6 +463,38 @@ export default function Create() {
                   </>
                 );
               })()
+            )}
+          </View>
+
+          {/* PRIORITAS */}
+          <View style={cardStyle}>
+            <SectionLabel iconName="alert-circle" iconColor="#d97706" iconBg="#fef3c7" label="Tingkat Prioritas *" />
+            {Platform.OS === "web" ? (
+              <select
+                value={formData.priority}
+                onChange={(e) => updateField("priority", e.target.value)}
+                style={{
+                  width: "100%", padding: "12px 14px", borderRadius: 12,
+                  border: "1px solid #f3f4f6", backgroundColor: "#f9fafb",
+                  fontSize: 15, color: "#374151", outline: "none", cursor: "pointer",
+                }}
+              >
+                <option value="low">Rendah (Low)</option>
+                <option value="medium">Sedang (Medium)</option>
+                <option value="high">Tinggi (High)</option>
+              </select>
+            ) : (
+              <View style={{ backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#f3f4f6", borderRadius: 12, overflow: "hidden" }}>
+                <Picker
+                  selectedValue={formData.priority}
+                  onValueChange={(val) => updateField("priority", val)}
+                  style={{ color: "#374151" }}
+                >
+                  <Picker.Item label="Rendah (Low)" value="low" color="#374151" />
+                  <Picker.Item label="Sedang (Medium)" value="medium" color="#374151" />
+                  <Picker.Item label="Tinggi (High)" value="high" color="#374151" />
+                </Picker>
+              </View>
             )}
           </View>
 

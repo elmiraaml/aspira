@@ -137,9 +137,17 @@ export default function Home() {
                 </View>
               </View>
               <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }} numberOfLines={2}>{item.description}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Feather name="map-pin" size={14} color="#9ca3af" />
-                <Text style={{ fontSize: 13, color: "#9ca3af", marginLeft: 4 }}>{item.location || "Lokasi tidak tersedia"}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 12 }}>
+                  <Feather name="map-pin" size={14} color="#9ca3af" />
+                  <Text style={{ fontSize: 13, color: "#9ca3af", marginLeft: 4 }} numberOfLines={1}>{item.location || "Lokasi tidak tersedia"}</Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6', marginRight: 4 }} />
+                  <Text style={{ fontSize: 12, color: item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6', fontWeight: "500" }}>
+                    {item.priority === 'high' ? 'Tinggi' : item.priority === 'medium' ? 'Sedang' : 'Rendah'}
+                  </Text>
+                </View>
               </View>
             </TouchableOpacity>
           ))

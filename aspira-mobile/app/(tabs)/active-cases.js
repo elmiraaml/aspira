@@ -54,6 +54,18 @@ const getAccentColor = (status) => {
   return "#60a5fa";
 };
 
+const getPriorityConfig = (priority) => {
+  switch (priority?.toLowerCase()) {
+    case "high":
+      return { label: "Prioritas Tinggi", color: "#ef4444" };
+    case "medium":
+      return { label: "Prioritas Sedang", color: "#f59e0b" };
+    case "low":
+    default:
+      return { label: "Prioritas Rendah", color: "#3b82f6" };
+  }
+};
+
 export default function ActiveCasesScreen() {
   const router = useRouter();
   const [reports, setReports] = useState([]);
@@ -67,7 +79,7 @@ export default function ActiveCasesScreen() {
     const token = await AsyncStorage.getItem("token");
     if (!token) return;
 
-    const res = await api.get("/reports/my", {
+    const res = await api.get("/reports", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -116,6 +128,7 @@ export default function ActiveCasesScreen() {
     const StatusIcon = status.icon;
     const accent = getAccentColor(item.status);
     const isChevronActive = item.status !== "pending";
+    const priorityConfig = getPriorityConfig(item.priority);
 
     return (
       <TouchableOpacity
@@ -154,8 +167,8 @@ export default function ActiveCasesScreen() {
 
           <View style={styles.cardFooter}>
             <View style={styles.priorityRow}>
-              <View style={styles.priorityDot} />
-              <Text style={styles.priorityText}>Prioritas Sedang</Text>
+              <View style={[styles.priorityDot, { backgroundColor: priorityConfig.color }]} />
+              <Text style={[styles.priorityText, { color: priorityConfig.color }]}>{priorityConfig.label}</Text>
             </View>
             <View style={[styles.chevronBox, isChevronActive ? styles.chevronActive : styles.chevronInactive]}>
               <ChevronRight size={14} color={isChevronActive ? "#ffffff" : "#9ca3af"} />
