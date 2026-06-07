@@ -26,7 +26,7 @@ export default function SidebarAdmin() {
     },
 
     {
-    href: "/user/profile",
+    href: "/admin/profile",
     label: "Profile",
     icon: (
       <svg

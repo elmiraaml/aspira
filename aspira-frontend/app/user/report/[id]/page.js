@@ -186,14 +186,27 @@ export default function UserReportDetailPage() {
             {/* Detail Card */}
             <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
               <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
-                <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight">
-                  {report.title}
-                </h1>
-                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
-                  <StatusIcon size={14} className="mr-2" />
-                  {status.label}
-                </span>
-              </div>
+  <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight">
+    {report.title}
+  </h1>
+  <div className="flex items-center gap-2">
+    {report.status === "pending" && (
+      <Link
+        href={`/user/report/edit/${id}`}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z" />
+        </svg>
+        Edit
+      </Link>
+    )}
+    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
+      <StatusIcon size={14} className="mr-2" />
+      {status.label}
+    </span>
+  </div>
+  </div>
 
               <div className="bg-blue-50/50 p-5 rounded-2xl mb-6 flex gap-3 items-start border border-blue-50">
                 <FileText size={20} className="text-blue-600 mt-0.5" />
@@ -203,6 +216,15 @@ export default function UserReportDetailPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <MetaItem
+    icon={<AlertCircle size={16} />}
+    label="Tingkat Prioritas"
+    value={
+      report.priority === "high" ? "Tinggi (High)" :
+      report.priority === "medium" ? "Sedang (Medium)" :
+      report.priority === "low" ? "Rendah (Low)" : "-"
+    }
+  />
                 <MetaItem icon={<ShieldAlert size={16} />} label="Kategori" value={report.category_name || "-"} />
                 <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.location || "-"} />
                 <MetaItem icon={<Calendar size={16} />} label="Tanggal Kejadian" value={formatDate(report.incident_date)} />

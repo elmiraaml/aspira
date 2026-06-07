@@ -14,6 +14,7 @@ export default function AdminReportsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   const fetchReports = async () => {
     try {
@@ -49,8 +50,11 @@ export default function AdminReportsPage() {
     if (categoryFilter !== "all") {
       temp = temp.filter((r) => r.category_name === categoryFilter);
     }
+    if (priorityFilter !== "all") {
+      temp = temp.filter((r) => r.priority?.toLowerCase() === priorityFilter);
+    }
     setFiltered(temp);
-  }, [search, statusFilter, categoryFilter, reports]);
+  }, [search, statusFilter, categoryFilter, priorityFilter, reports]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -110,6 +114,22 @@ export default function AdminReportsPage() {
 
   const categories = [...new Set(reports.map((r) => r.category_name).filter(Boolean))];
 
+  const statusCounts = reports.reduce((acc, r) => {
+    acc[r.status] = (acc[r.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const priorityCounts = reports.reduce((acc, r) => {
+    const key = r.priority?.toLowerCase();
+    if (key) acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const categoryCounts = reports.reduce((acc, r) => {
+    if (r.category_name) acc[r.category_name] = (acc[r.category_name] || 0) + 1;
+    return acc;
+  }, {});
+
   if (loading) {
     return (
       <div style={styles.loadingWrap}>
@@ -122,30 +142,47 @@ export default function AdminReportsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-      {/* Filters */}
-      <div style={styles.filterCard}>
+      {/* Filter Bar */}
+      <div style={styles.filterBlock}>
+        {/* Search - baris atas */}
         <div style={styles.searchBox}>
-          <Search size={18} color="#8a9bb0" />
-          <input type="text" placeholder="Cari judul atau pelapor..." value={search} onChange={(e) => setSearch(e.target.value)} style={styles.searchInput} />
+          <Search size={16} color="#8a9bb0" />
+          <input
+            type="text"
+            placeholder="Cari judul atau pelapor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={styles.searchInput}
+          />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={styles.select}>
-          <option value="all">Semua Status</option>
-          <option value="pending">Pending</option>
-          <option value="diproses">Diproses</option>
-          <option value="diverifikasi">Diverifikasi</option>
-          <option value="tindak_lanjut">Tindak Lanjut</option>
-          <option value="selesai">Selesai</option>
-          <option value="rejected">Ditolak</option>
-        </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={styles.select}>
-          <option value="all">Semua Kategori</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <button onClick={fetchReports} style={styles.refreshBtn}>
-          <RefreshCcw size={16} />
-        </button>
+
+        {/* 3 Dropdown - baris bawah */}
+        <div style={styles.dropdownRow}>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={styles.select}>
+            <option value="all">Semua Status ({reports.length})</option>
+            <option value="pending">Pending ({statusCounts.pending || 0})</option>
+            <option value="diproses">Diproses ({statusCounts.diproses || 0})</option>
+            <option value="diverifikasi">Diverifikasi ({statusCounts.diverifikasi || 0})</option>
+            <option value="tindak_lanjut">Tindak Lanjut ({statusCounts.tindak_lanjut || 0})</option>
+            <option value="selesai">Selesai ({statusCounts.selesai || 0})</option>
+            <option value="rejected">Ditolak ({statusCounts.rejected || 0})</option>
+          </select>
+
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={styles.select}>
+            <option value="all">Semua Kategori ({reports.length})</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat} ({categoryCounts[cat] || 0})</option>
+            ))}
+          </select>
+
+          <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} style={styles.select}>
+            <option value="all">Semua Prioritas ({reports.length})</option>
+            <option value="urgent">Mendesak ({(priorityCounts.urgent || 0) + (priorityCounts.emergency || 0)})</option>
+            <option value="high">Tinggi ({priorityCounts.high || 0})</option>
+            <option value="medium">Sedang ({priorityCounts.medium || 0})</option>
+            <option value="low">Rendah ({priorityCounts.low || 0})</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}
@@ -167,7 +204,7 @@ export default function AdminReportsPage() {
                 const priority = getPriorityStyle(report.priority);
                 const status = getStatusStyle(report.status);
                 return (
-                  <tr key={report.id}>
+                  <tr key={report.id} style={styles.tr}>
                     <td style={styles.td}>{report.title}</td>
                     <td style={styles.td}>{report.user_name || "Masyarakat"}</td>
                     <td style={styles.td}>
@@ -209,22 +246,112 @@ export default function AdminReportsPage() {
 
 const styles = {
   loadingWrap: { minHeight: "60vh", display: "flex", justifyContent: "center", alignItems: "center" },
-  hero: { background: "linear-gradient(135deg, #001f3d, #004b8d, #43acff)", borderRadius: 24, padding: 28, color: "#fff" },
-  heroTitle: { margin: 0, fontSize: 28, fontWeight: 800 },
-  heroDesc: { marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.85)" },
-  filterCard: { display: "flex", gap: 12, background: "#fff", padding: 18, borderRadius: 18, border: "1px solid rgba(0,75,141,0.08)" },
-  searchBox: { flex: 1, display: "flex", alignItems: "center", gap: 8, border: "1px solid #e2e8f0", borderRadius: 12, padding: "0 12px" },
-  searchInput: { flex: 1, border: "none", outline: "none", padding: 12, fontSize: 14, fontFamily: "'Inter', system-ui" },
-  select: { border: "1px solid #e2e8f0", borderRadius: 12, padding: "0 12px", fontSize: 14 },
-  refreshBtn: { border: "none", borderRadius: 12, padding: "0 20px", background: "#004b8d", color: "#fff", cursor: "pointer" },
-  tableWrap: { background: "#fff", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(0,75,141,0.08)" },
+  filterBlock: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    background: "#fff",
+    padding: 18,
+    borderRadius: 18,
+    border: "1px solid rgba(0,75,141,0.08)",
+    boxShadow: "0 2px 12px rgba(0,75,141,0.06)",
+  },
+  searchBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    border: "1px solid #e2e8f0",
+    borderRadius: 12,
+    padding: "0 14px",
+    background: "#f8fafd",
+  },
+  searchInput: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    padding: "11px 0",
+    fontSize: 14,
+    background: "transparent",
+    color: "#001f3d",
+    fontFamily: "'Inter', system-ui",
+  },
+  dropdownRow: { display: "flex", gap: 10 },
+  select: {
+    flex: 1,
+    border: "1px solid #e2e8f0",
+    borderRadius: 12,
+    padding: "9px 12px",
+    fontSize: 13,
+    cursor: "pointer",
+    background: "#f8fafd",
+    color: "#001f3d",
+    outline: "none",
+  },
+  tableWrap: {
+    background: "#fff",
+    borderRadius: 20,
+    overflow: "hidden",
+    border: "1px solid rgba(0,75,141,0.08)",
+    boxShadow: "0 2px 12px rgba(0,75,141,0.06)",
+  },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { textAlign: "left", padding: 16, background: "#f8f9ff", fontSize: 13, fontWeight: 600, color: "#001f3d" },
-  td: { padding: 16, borderTop: "1px solid #f1f1e6", fontSize: 14, color: "#001f3d" },
-  badge: { padding: "5px 12px", borderRadius: 40, fontSize: 12, fontWeight: 600 },
+  th: {
+    textAlign: "left",
+    padding: "14px 18px",
+    background: "#f8f9ff",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#3a5068",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    borderBottom: "1px solid rgba(0,75,141,0.08)",
+  },
+  tr: { transition: "background 0.15s" },
+  td: {
+    padding: "15px 18px",
+    borderTop: "1px solid #f1f5fb",
+    fontSize: 14,
+    color: "#001f3d",
+  },
+  badge: {
+    display: "inline-block",
+    padding: "4px 12px",
+    borderRadius: 40,
+    fontSize: 12,
+    fontWeight: 600,
+  },
   actionWrap: { display: "flex", alignItems: "center", gap: 8 },
-  detailBtn: { width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10, background: "#e8f5ff", color: "#004b8d", textDecoration: "none" },
-  deleteBtn: { width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10, background: "#fde8e8", color: "#c0392b", border: "none", cursor: "pointer" },
-  statusSelect: { padding: "8px 10px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 },
-  empty: { textAlign: "center", padding: 48, color: "#3a5068" },
+  detailBtn: {
+    width: 34,
+    height: 34,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    background: "#e8f5ff",
+    color: "#004b8d",
+    textDecoration: "none",
+  },
+  deleteBtn: {
+    width: 34,
+    height: 34,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    background: "#fde8e8",
+    color: "#c0392b",
+    border: "none",
+    cursor: "pointer",
+  },
+  statusSelect: {
+    padding: "7px 10px",
+    borderRadius: 10,
+    border: "1px solid #e2e8f0",
+    fontSize: 12,
+    background: "#f8fafd",
+    color: "#001f3d",
+    cursor: "pointer",
+  },
+  empty: { textAlign: "center", padding: 48, color: "#8a9bb0", fontSize: 14 },
 };
