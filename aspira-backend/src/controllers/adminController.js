@@ -271,3 +271,29 @@ exports.getActivityLogs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// DELETE REPORT
+exports.deleteReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [report] = await db.query("SELECT * FROM reports WHERE id = ?", [id]);
+    if (report.length === 0) return res.status(404).json({ message: "Laporan tidak ditemukan" });
+
+    await db.query("DELETE FROM audit_logs WHERE report_id = ?", [id]);
+    await db.query("DELETE FROM comments WHERE report_id = ?", [id]);
+    await db.query("DELETE FROM reports WHERE id = ?", [id]);
+
+    if (req.user) {
+      await db.query(
+        "INSERT INTO activity_logs (admin_id, action, description) VALUES (?, ?, ?)",
+        [req.user.id, "DELETE_REPORT", `Menghapus laporan: ${report[0].title}`]
+      );
+    }
+
+    res.status(200).json({ message: "Laporan berhasil dihapus" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, Search, Users, Loader2, UserCheck } from "lucide-react";
+import { Trash2, Search, Loader2 } from "lucide-react";
 import { api } from "@/src/lib/api";
 
 export default function SuperAdminUsersPage() {
@@ -24,9 +24,7 @@ export default function SuperAdminUsersPage() {
   const deleteUser = async (id) => {
     if (!confirm("Yakin ingin menghapus user ini?")) return;
     try {
-      await api(`/admin/users/${id}`, {
-        method: "DELETE",
-      });
+      await api(`/admin/users/${id}`, { method: "DELETE" });
       fetchUsers();
     } catch (err) {
       console.error("Delete User Error:", err);
@@ -45,100 +43,78 @@ export default function SuperAdminUsersPage() {
 
   if (loading) {
     return (
-      <div style={styles.loadingWrap}>
-        <Loader2 size={42} style={{ color: "#004b8d", animation: "spin 1s linear infinite" }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <Users size={28} color="#004b8d" />
-          <h1 style={styles.title}>Manajemen User</h1>
-        </div>
-        <p style={styles.subtitle}>Manage all user accounts</p>
-      </div>
-
-      {/* Stats */}
-      <div style={styles.statsCard}>
-        <UserCheck size={22} color="#004b8d" />
-        <div>
-          <p style={styles.statsLabel}>Total User Terdaftar</p>
-          <h2 style={styles.statsValue}>{users.length}</h2>
-        </div>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
+          Manajemen
+        </p>
+        <h3 className="text-lg text-gray-800 font-semibold">User</h3>
       </div>
 
       {/* Search */}
-      <div style={styles.searchBox}>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
         <Search size={18} color="#8a9bb0" />
         <input
           type="text"
           placeholder="Cari user berdasarkan nama atau email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={styles.searchInput}
+          className="border-none outline-none w-full text-sm text-gray-700 bg-transparent"
         />
       </div>
 
       {/* Table */}
-      <div style={styles.tableWrap}>
-        <table style={styles.table}>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th style={styles.th}>Nama</th>
-              <th style={styles.th}>Email</th>
-              <th style={styles.th}>Role</th>
-              <th style={styles.th}>Tanggal Daftar</th>
-              <th style={styles.th}>Aksi</th>
+              {["Nama", "Email", "Role", "Tanggal Daftar", "Aksi"].map((h) => (
+                <th key={h} className="text-left px-5 py-4 text-[11px] uppercase tracking-[0.06em] font-bold text-gray-400 bg-gray-50 border-b border-gray-100">
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length > 0 ? filteredUsers.map((user) => (
-              <tr key={user.id}>
-                <td style={styles.td}>{user.fullname || user.full_name || "-"}</td>
-                <td style={styles.td}>{user.email}</td>
-                <td style={styles.td}>
-                  <span style={{ background: "#e8f5ff", color: "#004b8d", padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+              <tr key={user.id} className="transition-colors hover:bg-gray-50">
+                <td className="px-5 py-4 text-sm text-gray-800 border-t border-gray-50">{user.fullname || user.full_name || "-"}</td>
+                <td className="px-5 py-4 text-sm text-gray-800 border-t border-gray-50">{user.email}</td>
+                <td className="px-5 py-4 border-t border-gray-50">
+                  <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold">
                     {user.role}
                   </span>
                 </td>
-                <td style={styles.td}>{new Date(user.created_at).toLocaleDateString("id-ID")}</td>
-                <td style={styles.td}>
-                  <button onClick={() => deleteUser(user.id)} style={styles.deleteBtn}>
+                <td className="px-5 py-4 text-sm text-gray-800 border-t border-gray-50">
+                  {new Date(user.created_at).toLocaleDateString("id-ID")}
+                </td>
+                <td className="px-5 py-4 border-t border-gray-50">
+                  <button
+                    onClick={() => deleteUser(user.id)}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#8a9bb0" }}>Belum ada user.</td></tr>
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                  Belum ada user.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
-        {filteredUsers.length === 0 && (
-          <div style={styles.empty}>Tidak ada user ditemukan.</div>
-        )}
       </div>
     </div>
   );
 }
-
-const styles = {
-  loadingWrap: { minHeight: "60vh", display: "flex", justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 28, fontWeight: 800, color: "#001f3d", margin: 0 },
-  subtitle: { color: "#3a5068", fontSize: 14, marginTop: 4 },
-  statsCard: { background: "#fff", borderRadius: 16, padding: "16px 20px", border: "1px solid rgba(0,75,141,0.08)", display: "flex", alignItems: "center", gap: 14 },
-  statsLabel: { fontSize: 12, color: "#3a5068", margin: 0 },
-  statsValue: { fontSize: 24, fontWeight: 800, color: "#001f3d", margin: 0 },
-  searchBox: { display: "flex", alignItems: "center", gap: 10, background: "#fff", padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(0,75,141,0.08)" },
-  searchInput: { border: "none", outline: "none", width: "100%", fontSize: 14, fontFamily: "'Inter', system-ui" },
-  tableWrap: { background: "#fff", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(0,75,141,0.08)" },
-  table: { width: "100%", borderCollapse: "collapse" },
-  th: { textAlign: "left", padding: 16, background: "#f8f9ff", fontSize: 13, fontWeight: 600, color: "#001f3d" },
-  td: { padding: 16, borderTop: "1px solid #f1f1e6", fontSize: 14, color: "#001f3d" },
-  deleteBtn: { border: "none", background: "#fde8e8", color: "#c0392b", padding: 8, borderRadius: 10, cursor: "pointer", transition: "all 0.2s" },
-  empty: { padding: 48, textAlign: "center", color: "#3a5068" },
-};

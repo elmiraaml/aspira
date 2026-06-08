@@ -153,30 +153,36 @@ export default function AdminDashboardPage() {
     priority
   ) => {
     const map = {
+      urgent: {
+        bg: "#ffe0e0",
+        color: "#b91c1c",
+        label: "Mendesak",
+      },
+
       emergency: {
-        bg: "#fde8e8",
-        color: "#c0392b",
-        label: "Emergency",
+        bg: "#ffe0e0",
+        color: "#b91c1c",
+        label: "Mendesak",
       },
 
       high: {
-        bg: "#fff7d6",
-        color: "#b07d00",
-        label: "High",
+        bg: "#ffe8cc",
+        color: "#c45f00",
+        label: "Tinggi",
       },
 
       medium: {
-        bg: "#e8f5ff",
-        color: "#004b8d",
-        label: "Medium",
+        bg: "#fef9c3",
+        color: "#854d0e",
+        label: "Sedang",
       },
     };
 
     return (
       map[priority] || {
-        bg: "#f1f1e6",
-        color: "#3a5068",
-        label: "Low",
+        bg: "#dcfce7",
+        color: "#166534",
+        label: "Rendah",
       }
     );
   };

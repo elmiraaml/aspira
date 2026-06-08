@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Eye, RefreshCcw, AlertTriangle, CheckCircle, Clock, Loader2, Trash2 } from "lucide-react";
+import { Search, Eye, Trash2, Loader2 } from "lucide-react";
 import { api } from "@/src/lib/api";
-
-const API = "http://localhost:5000/api";
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState([]);
@@ -16,6 +14,9 @@ export default function AdminReportsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
+  // Track status per-row secara lokal supaya langsung update tanpa nunggu refetch
+  const [localStatuses, setLocalStatuses] = useState({});
+
   const fetchReports = async () => {
     try {
       setLoading(true);
@@ -23,6 +24,10 @@ export default function AdminReportsPage() {
       if (Array.isArray(data)) {
         setReports(data);
         setFiltered(data);
+        // Reset local statuses saat fetch ulang
+        const initial = {};
+        data.forEach((r) => { initial[r.id] = r.status; });
+        setLocalStatuses(initial);
       }
     } catch (err) {
       console.error(err);
@@ -45,7 +50,7 @@ export default function AdminReportsPage() {
       );
     }
     if (statusFilter !== "all") {
-      temp = temp.filter((r) => r.status === statusFilter);
+      temp = temp.filter((r) => (localStatuses[r.id] || r.status) === statusFilter);
     }
     if (categoryFilter !== "all") {
       temp = temp.filter((r) => r.category_name === categoryFilter);
@@ -54,30 +59,32 @@ export default function AdminReportsPage() {
       temp = temp.filter((r) => r.priority?.toLowerCase() === priorityFilter);
     }
     setFiltered(temp);
-  }, [search, statusFilter, categoryFilter, priorityFilter, reports]);
+  }, [search, statusFilter, categoryFilter, priorityFilter, reports, localStatuses]);
 
   const updateStatus = async (id, newStatus) => {
+    // Update lokal dulu supaya badge langsung berubah
+    setLocalStatuses((prev) => ({ ...prev, [id]: newStatus }));
     try {
       const res = await api(`/admin/reports/${id}/status`, {
         method: "PUT",
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.message && res.message.includes("berhasil")) {
-        alert("Status berhasil diupdate");
-        fetchReports();
-      } else {
+      if (!res.message || !res.message.includes("berhasil")) {
         alert("Error dari server: " + JSON.stringify(res));
+        // Rollback kalau gagal
+        fetchReports();
       }
     } catch (err) {
       console.error(err);
       alert("Terjadi error");
+      fetchReports();
     }
   };
 
   const deleteReport = async (id) => {
     if (!confirm("Yakin hapus laporan ini?")) return;
     try {
-      const res = await api(`/reports/${id}`, { method: "DELETE" });
+      const res = await api(`/admin/reports/${id}`, { method: "DELETE" });
       if (res.message && res.message.includes("berhasil")) {
         fetchReports();
       } else {
@@ -91,23 +98,23 @@ export default function AdminReportsPage() {
 
   const getPriorityStyle = (priority) => {
     const map = {
-      urgent: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
-      emergency: { bg: "#fde8e8", color: "#c0392b", label: "Mendesak" },
-      high: { bg: "#fff7d6", color: "#b07d00", label: "Tinggi" },
-      medium: { bg: "#e8f5ff", color: "#004b8d", label: "Sedang" },
-      low: { bg: "#f1f1e6", color: "#3a5068", label: "Rendah" },
+      urgent:    { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      emergency: { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi" },
+      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang" },
+      low:       { bg: "#dcfce7", color: "#166534", label: "Rendah" },
     };
     return map[priority?.toLowerCase()] || map.low;
   };
 
   const getStatusStyle = (status) => {
     const map = {
-      pending: { bg: "#fff7d6", color: "#b07d00", label: "Pending" },
-      diproses: { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },
+      pending:      { bg: "#fff7d6", color: "#b07d00", label: "Pending" },
+      diproses:     { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },
       diverifikasi: { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi" },
-      tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
-      selesai: { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" },
-      rejected: { bg: "#fde8e8", color: "#c0392b", label: "Ditolak" },
+      tindak_lanjut:{ bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
+      selesai:      { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" },
+      rejected:     { bg: "#fde8e8", color: "#c0392b", label: "Ditolak" },
     };
     return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status };
   };
@@ -144,7 +151,6 @@ export default function AdminReportsPage() {
 
       {/* Filter Bar */}
       <div style={styles.filterBlock}>
-        {/* Search - baris atas */}
         <div style={styles.searchBox}>
           <Search size={16} color="#8a9bb0" />
           <input
@@ -156,7 +162,6 @@ export default function AdminReportsPage() {
           />
         </div>
 
-        {/* 3 Dropdown - baris bawah */}
         <div style={styles.dropdownRow}>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={styles.select}>
             <option value="all">Semua Status ({reports.length})</option>
@@ -201,22 +206,32 @@ export default function AdminReportsPage() {
           <tbody>
             {filtered.length > 0 ? (
               filtered.map((report) => {
+                const currentStatus = localStatuses[report.id] || report.status;
                 const priority = getPriorityStyle(report.priority);
-                const status = getStatusStyle(report.status);
+                const status = getStatusStyle(currentStatus);
                 return (
                   <tr key={report.id} style={styles.tr}>
                     <td style={styles.td}>{report.title}</td>
                     <td style={styles.td}>{report.user_name || "Masyarakat"}</td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.badge, background: priority.bg, color: priority.color }}>{priority.label}</span>
+                      <span style={{ ...styles.badge, background: priority.bg, color: priority.color }}>
+                        {priority.label}
+                      </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.badge, background: status.bg, color: status.color }}>{status.label}</span>
+                      <span style={{ ...styles.badge, background: status.bg, color: status.color }}>
+                        {status.label}
+                      </span>
                     </td>
                     <td style={styles.td}>{new Date(report.created_at).toLocaleDateString("id-ID")}</td>
                     <td style={styles.td}>
                       <div style={styles.actionWrap}>
-                        <select value={report.status} onChange={(e) => updateStatus(report.id, e.target.value)} style={styles.statusSelect}>
+                        {/* Dropdown ini yang mengubah badge Status di atas secara sinkron */}
+                        <select
+                          value={currentStatus}
+                          onChange={(e) => updateStatus(report.id, e.target.value)}
+                          style={styles.statusSelect}
+                        >
                           <option value="pending">Pending</option>
                           <option value="diproses">Diproses</option>
                           <option value="diverifikasi">Diverifikasi</option>
@@ -227,6 +242,9 @@ export default function AdminReportsPage() {
                         <Link href={`/admin/reports/${report.id}`} style={styles.detailBtn}>
                           <Eye size={15} />
                         </Link>
+                        <button onClick={() => deleteReport(report.id)} style={styles.deleteBtn}>
+                          <Trash2 size={15} />
+                        </button>
                       </div>
                     </td>
                   </tr>

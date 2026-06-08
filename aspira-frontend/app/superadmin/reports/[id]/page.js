@@ -28,6 +28,7 @@ export default function SuperAdminReportDetailPage() {
 
   const [report, setReport] = useState(null);
   const [timeline, setTimeline] = useState([]);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,11 +37,6 @@ export default function SuperAdminReportDetailPage() {
     const fetchDetail = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        // if (!token) {
-        //   window.location.href = "/login";
-        //   return;
-        // }
 
         const res = await fetch(`${API}/reports/${id}`, {
           headers: {
@@ -65,18 +61,52 @@ export default function SuperAdminReportDetailPage() {
       }
     };
 
-    fetchDetail();
+    const fetchComments = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API}/comments/report/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setComments(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Comments Error:", err);
+      }
+    };
+
+    const init = async () => {
+      setLoading(true);
+      await Promise.all([fetchDetail(), fetchComments()]);
+      setLoading(false);
+    };
+
+    init();
   }, [id]);
+
+  const getPriorityStyle = (priority) => {
+    const map = {
+      urgent:    { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      emergency: { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi" },
+      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang" },
+      low:       { bg: "#dcfce7", color: "#166534", label: "Rendah" },
+    };
+    return map[priority?.toLowerCase()] || map.low;
+  };
 
   const getStatusStyle = (status) => {
     const map = {
-      pending: { bg: "#fff7d6", color: "#b07d00", label: "Menunggu", icon: Clock },
-      diproses: { bg: "#e8f5ff", color: "#004b8d", label: "Diproses", icon: Activity },
-      investigasi: { bg: "#e8f5ff", color: "#004b8d", label: "Investigasi", icon: Activity },
-      ditindak: { bg: "#e8f5ff", color: "#004b8d", label: "Ditindak", icon: Activity },
-      selesai: { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai", icon: CheckCircle },
-      ditolak: { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
-      rejected: { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
+      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Pending", icon: Clock },
+      diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa", icon: Activity },
+      diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi", icon: Activity },
+      tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut", icon: Activity },
+      diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses", icon: Activity },
+      investigasi:   { bg: "#e8f5ff", color: "#004b8d", label: "Investigasi", icon: Activity },
+      ditindak:      { bg: "#e8f5ff", color: "#004b8d", label: "Ditindak", icon: Activity },
+      selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai", icon: CheckCircle },
+      ditolak:       { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
+      rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
     };
     return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status, icon: FileText };
   };
@@ -121,7 +151,7 @@ export default function SuperAdminReportDetailPage() {
   }
 
   const status = getStatusStyle(report.status);
-  const StatusIcon = status.icon;
+  const priority = getPriorityStyle(report.priority);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -133,12 +163,16 @@ export default function SuperAdminReportDetailPage() {
 
       {/* Detail Card */}
       <div style={styles.card}>
-        <div style={styles.cardHeader}>
-          <h1 style={styles.title}>{report.title}</h1>
-          <span style={{ ...styles.badge, background: status.bg, color: status.color }}>
-            <StatusIcon size={12} style={{ marginRight: 6 }} />
-            {status.label}
-          </span>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
+          <h1 style={{ ...styles.title, flex: 1 }}>{report.title}</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <span style={{ ...styles.badge, background: priority.bg, color: priority.color }}>
+              {priority.label}
+            </span>
+            <span style={{ ...styles.badge, background: status.bg, color: status.color }}>
+              {status.label}
+            </span>
+          </div>
         </div>
 
         <div style={styles.descBox}>
@@ -147,13 +181,11 @@ export default function SuperAdminReportDetailPage() {
         </div>
 
         <div style={styles.metaGrid}>
-          <MetaItem icon={<User size={16} />} label="Pelapor" value={report.fullname || "-"} />
-          <MetaItem icon={<Mail size={16} />} label="Email" value={report.reporter_email || "-"} />
-          <MetaItem icon={<Phone size={16} />} label="Telepon" value={report.reporter_phone || "-"} />
-          <MetaItem icon={<FileText size={16} />} label="Kategori" value={report.category_name || "-"} />
-          <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.location || "-"} />
-          <MetaItem icon={<Calendar size={16} />} label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
-          <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
+          <MetaItem icon={<User size={16} />}     label="Pelapor"          value={report.fullname || "-"} />
+          <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
+          <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"  value={report.location || "-"} />
+          <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
+          <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
         </div>
 
         {report.image || report.bukti_foto ? (
@@ -165,6 +197,39 @@ export default function SuperAdminReportDetailPage() {
             <img src={report.image || report.bukti_foto} alt="Bukti" style={styles.image} />
           </div>
         ) : null}
+      </div>
+
+      {/* Comments Card (read-only) */}
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Komentar & Diskusi</h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {comments.length > 0 ? (
+            comments.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  padding: 14,
+                  borderRadius: 14,
+                  background: item.role === "admin" ? "#eef6ff" : "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <strong>
+                    {item.full_name} {item.role === "admin" && "(Admin)"}
+                  </strong>
+                  <span style={{ fontSize: 12, color: "#64748b" }}>
+                    {formatDateTime(item.created_at)}
+                  </span>
+                </div>
+                <p style={{ margin: 0 }}>{item.comment}</p>
+              </div>
+            ))
+          ) : (
+            <p style={{ color: "#3a5068" }}>Belum ada komentar.</p>
+          )}
+        </div>
       </div>
 
       {/* Timeline Card */}
@@ -281,14 +346,6 @@ const styles = {
     border: "1px solid rgba(0,75,141,0.08)",
     boxShadow: "0 4px 20px rgba(0,75,141,0.04)",
   },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    flexWrap: "wrap",
-    gap: 16,
-    marginBottom: 20,
-  },
   title: {
     margin: 0,
     fontSize: 26,
@@ -310,6 +367,7 @@ const styles = {
     padding: 20,
     borderRadius: 16,
     marginBottom: 24,
+    marginTop: 20,
     display: "flex",
     gap: 12,
     alignItems: "flex-start",
@@ -324,9 +382,11 @@ const styles = {
   },
   metaGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
     gap: 8,
     marginBottom: 24,
+    borderTop: "1px solid #f1f1e6",
+    paddingTop: 20,
   },
   metaItem: {
     display: "flex",
@@ -380,6 +440,7 @@ const styles = {
     fontWeight: 700,
     color: "#001f3d",
     margin: 0,
+    marginBottom: 20,
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   timelineList: {

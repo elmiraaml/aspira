@@ -11,6 +11,7 @@ const {
   updateReportStatus,
   getAuditLogs,
   getActivityLogs,
+  deleteReport,
 } = require("../controllers/adminController");
 
 const {
@@ -75,6 +76,14 @@ router.put(
   verifyToken,
   isAdmin,
   updateReportStatus
+);
+
+// DELETE REPORT
+router.delete(
+  "/reports/:id",
+  verifyToken,
+  isAdmin,
+  deleteReport
 );
 
 // LOGS

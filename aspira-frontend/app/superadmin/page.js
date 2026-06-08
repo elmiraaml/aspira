@@ -76,9 +76,25 @@ export default function SuperAdminDashboardPage() {
   }
 
   const getStatusStyle = (status) => {
-    if (status === "pending") return { bg: "#fff7d6", color: "#b07d00", label: "Menunggu" };
-    if (status === "selesai") return { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" };
-    return { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" };
+    const map = {
+      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Pending" },
+      diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },
+      diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi" },
+      tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
+      selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" },
+      rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak" },
+    };
+    return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status };
+  };
+
+  const getPriorityStyle = (priority) => {
+    const map = {
+      urgent:    { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      emergency: { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi" },
+      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang" },
+    };
+    return map[priority] || { bg: "#dcfce7", color: "#166534", label: "Rendah" };
   };
 
   const statCards = [
@@ -111,21 +127,30 @@ export default function SuperAdminDashboardPage() {
         <MiniStatusCard title="Selesai" value={stats.selesaiReports} icon={<CheckCircle size={20} />} color="text-green-600" bg="bg-green-50" />
       </div>
 
-      {/* Recent Reports */}
+      {/* REPORTS */}
       <div style={styles.tableCard}>
         <div style={styles.tableHeader}>
           <div>
-            <h3 style={styles.sectionTitle}>Laporan Terbaru</h3>
-            <p style={styles.sectionDesc}>6 laporan terbaru seluruh sistem</p>
+            <p style={styles.sectionLabel}>
+              Aktivitas Terbaru
+            </p>
+            <h3 style={styles.sectionTitle}>
+              Laporan Terbaru
+            </h3>
           </div>
-          <Link href="/superadmin/reports" style={styles.linkBtn}>
-            Lihat Semua <ArrowRight size={14} />
+
+          <Link
+            href="/superadmin/reports"
+            style={styles.linkBtn}
+          >
+            Kelola Semua <ArrowRight size={14} />
           </Link>
         </div>
 
         {recentReports.length > 0 ? (
           recentReports.map((report) => {
             const status = getStatusStyle(report.status);
+            const priority = getPriorityStyle(report.priority);
             return (
               <div key={report.id} style={styles.reportItem}>
                 <div>
@@ -133,6 +158,7 @@ export default function SuperAdminDashboardPage() {
                   <p style={styles.reportMeta}>{report.reporter_name || "User"} • {new Date(report.created_at).toLocaleDateString("id-ID")}</p>
                 </div>
                 <div style={styles.reportRight}>
+                  <span style={{ ...styles.badge, background: priority.bg, color: priority.color }}>{priority.label}</span>
                   <span style={{ ...styles.badge, background: status.bg, color: status.color }}>{status.label}</span>
                   <Link href={`/superadmin/reports/${report.id}`} style={styles.eyeBtn}>
                     <Eye size={16} />
@@ -183,6 +209,7 @@ const styles = {
   grid4: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 },
   tableCard: { background: "#fff", borderRadius: 20, border: "1px solid rgba(0,75,141,0.08)", overflow: "hidden" },
   tableHeader: { padding: "18px 24px", borderBottom: "1px solid #f1f1e6", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  sectionLabel: { margin: 0, fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9ca3af" },
   sectionTitle: { margin: 0, fontSize: 18, fontWeight: 700, color: "#001f3d" },
   sectionDesc: { margin: "4px 0 0", fontSize: 12, color: "#3a5068" },
   linkBtn: { display: "flex", alignItems: "center", gap: 6, textDecoration: "none", color: "#004b8d", fontWeight: 600, fontSize: 13 },

@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   User,
   MessageSquare,
@@ -104,15 +105,29 @@ export default function UserReportDetailPage() {
     }
   };
 
+  const getPriorityStyle = (priority) => {
+    const map = {
+      urgent:    { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      emergency: { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
+      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi" },
+      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang" },
+      low:       { bg: "#dcfce7", color: "#166534", label: "Rendah" },
+    };
+    return map[priority?.toLowerCase()] || map.low;
+  };
+
   const getStatusStyle = (status) => {
     const map = {
-      pending: { bg: "bg-amber-50", color: "text-amber-600", label: "Menunggu", icon: Clock },
-      diproses: { bg: "bg-purple-50", color: "text-purple-600", label: "Diproses", icon: Activity },
-      investigasi: { bg: "bg-blue-50", color: "text-blue-600", label: "Investigasi", icon: ShieldAlert },
-      ditindak: { bg: "bg-blue-50", color: "text-blue-600", label: "Ditindak", icon: AlertCircle },
-      selesai: { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai", icon: CheckCircle },
-      ditolak: { bg: "bg-red-50", color: "text-red-600", label: "Ditolak", icon: AlertCircle },
-      rejected: { bg: "bg-red-50", color: "text-red-600", label: "Ditolak", icon: AlertCircle },
+      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Menunggu",       icon: Clock },
+      diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",      icon: Activity },
+      diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
+      diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },
+      tindak_lanjut: { bg: "bg-sky-50",     color: "text-sky-600",     label: "Tindak Lanjut",  icon: Activity },
+      investigasi:   { bg: "bg-blue-50",    color: "text-blue-600",    label: "Investigasi",    icon: ShieldAlert },
+      ditindak:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Ditindak",       icon: Activity },
+      selesai:       { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai",        icon: CheckCircle },
+      ditolak:       { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
+      rejected:      { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
     };
     return map[status] || { bg: "bg-gray-50", color: "text-gray-600", label: status, icon: FileText };
   };
@@ -167,6 +182,7 @@ export default function UserReportDetailPage() {
   }
 
   const status = getStatusStyle(report.status);
+  const priority = getPriorityStyle(report.priority);
   const StatusIcon = status.icon;
 
   return (
@@ -186,10 +202,16 @@ export default function UserReportDetailPage() {
             {/* Detail Card */}
             <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
               <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
-  <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight">
+  <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight flex-1">
     {report.title}
   </h1>
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2 flex-shrink-0">
+    <span
+      style={{ background: priority.bg, color: priority.color }}
+      className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold"
+    >
+      {priority.label}
+    </span>
     {report.status === "pending" && (
       <Link
         href={`/user/report/edit/${id}`}

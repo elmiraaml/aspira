@@ -1,17 +1,16 @@
-// ============================================================
-// app/superadmin/layout.jsx
-// Layout Superadmin
-// ============================================================
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import SidebarSuperAdmin from "../../components/sidebarSuper";
 import Navbar from "../../components/Navbar";
 
 export default function SuperAdminLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
+
+  const hideChrome = /^\/superadmin\/reports\/[^/]+$/.test(pathname);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -36,20 +35,31 @@ export default function SuperAdminLayout({ children }) {
 
   if (!isAuthorized) return null;
 
+  if (hideChrome) {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafd", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <main style={{ flex: 1, padding: "28px 32px", display: "flex", justifyContent: "center" }}>
+            <div style={{ width: "100%", maxWidth: 896, display: "flex", flexDirection: "column", gap: 24 }}>
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
         display: "flex",
         minHeight: "100vh",
         background: "#f8fafc",
-        fontFamily:
-          "'Inter', system-ui, sans-serif",
+        fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
-      {/* Sidebar */}
-      <SidebarSuperAdmin />
+      {!hideChrome && <SidebarSuperAdmin />}
 
-      {/* Main */}
       <div
         style={{
           flex: 1,
@@ -58,10 +68,8 @@ export default function SuperAdminLayout({ children }) {
           minWidth: 0,
         }}
       >
-        {/* Navbar */}
-        <Navbar />
+        {!hideChrome && <Navbar />}
 
-        {/* Content */}
         <main
           style={{
             flex: 1,
