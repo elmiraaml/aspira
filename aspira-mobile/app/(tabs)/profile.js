@@ -182,12 +182,12 @@ export default function Profile() {
           
           {/* PROFILE CARD */}
           <View style={{ backgroundColor: "#ffffff", borderRadius: 16, borderWidth: 1, borderColor: "#f3f4f6", overflow: "hidden", marginBottom: 20 }}>
-            <LinearGradient
-              colors={['#2563eb', '#60a5fa', '#818cf8']}
-              style={{ height: 100 }}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
+           <View
+  style={{
+    height: 100,
+    backgroundColor: "#ffffff",
+  }}
+/>
             <View style={{ alignItems: "center", marginTop: -32, paddingBottom: 24 }}>
               <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: "#111827", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "#ffffff", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}>
                 <Text style={{ fontSize: 24, fontWeight: "bold", color: "#ffffff" }}>
@@ -257,38 +257,7 @@ export default function Profile() {
             </View>
           </View>
 
-          {/* PREFERENCES */}
-          <View style={{ backgroundColor: "#ffffff", borderRadius: 16, borderWidth: 1, borderColor: "#f3f4f6", overflow: "hidden", marginBottom: 24 }}>
-            <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#f9fafb" }}>
-              <Text style={{ fontSize: 11, fontWeight: "600", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1 }}>Preferences</Text>
-            </View>
-            <View style={{ padding: 16 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <View>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: "#374151" }}>Email Notifications</Text>
-                  <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>Receive updates and reminders</Text>
-                </View>
-                <Switch
-                  value={emailNotif}
-                  onValueChange={setEmailNotif}
-                  trackColor={{ false: "#e5e7eb", true: "#60a5fa" }}
-                  thumbColor={emailNotif ? "#2563eb" : "#ffffff"}
-                />
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <View>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: "#374151" }}>Weekly Report</Text>
-                  <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>Receive weekly activity reports</Text>
-                </View>
-                <Switch
-                  value={weeklyReport}
-                  onValueChange={setWeeklyReport}
-                  trackColor={{ false: "#e5e7eb", true: "#60a5fa" }}
-                  thumbColor={weeklyReport ? "#2563eb" : "#ffffff"}
-                />
-              </View>
-            </View>
-          </View>
+
 
           {/* LOGOUT BUTTON */}
           <TouchableOpacity 

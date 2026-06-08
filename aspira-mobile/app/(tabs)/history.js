@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshCon
 import { Feather } from "@expo/vector-icons";
 import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 export default function History() {
   const [reports, setReports] = useState([]);
@@ -30,9 +30,11 @@ export default function History() {
     }
   };
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     fetchReports();
-  }, []);
+  }, [])
+);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

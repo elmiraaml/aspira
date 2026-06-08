@@ -1,5 +1,6 @@
 // app/(tabs)/active-cases.js
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -98,9 +99,11 @@ export default function ActiveCasesScreen() {
   }
 };
 
-  useEffect(() => {
+ useFocusEffect(
+  useCallback(() => {
     fetchReports();
-  }, []);
+  }, [])
+);
 
   const onRefresh = () => {
     setRefreshing(true);
