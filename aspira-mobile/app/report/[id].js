@@ -26,9 +26,12 @@ export default function ReportDetail() {
       setLoading(true);
       // Fetch report detail
       const resReport = await api.get(`/reports/${id}`);
-      const reportData = Array.isArray(resReport.data) && resReport.data.length > 0 
-        ? resReport.data[0] 
-        : resReport.data;
+      let reportData = resReport.data;
+      if (resReport.data.report) {
+        reportData = resReport.data.report;
+      } else if (Array.isArray(resReport.data) && resReport.data.length > 0) {
+        reportData = resReport.data[0];
+      }
       setReport(reportData);
 
       // Fetch comments
@@ -127,8 +130,7 @@ export default function ReportDetail() {
          {/* Header Info */}
 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
   <View style={{ flex: 1, paddingRight: 12 }}>
-    <Text style={{ fontSize: 22, fontWeight: "bold", color: "#111827", marginBottom: 8 }}>{report.title}</Text>
-    <Text style={{ fontSize: 13, color: "#6b7280" }}>Dilaporkan oleh: <Text style={{ fontWeight: "600", color: "#374151" }}>{report.fullname}</Text></Text>
+    <Text style={{ fontSize: 22, fontWeight: "bold", color: "#111827" }}>{report.title}</Text>
   </View>
   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
     {report.status === "pending" && (
@@ -140,9 +142,11 @@ export default function ReportDetail() {
         <Text style={{ fontSize: 11, fontWeight: "600", color: "#2563eb" }}>Edit</Text>
       </TouchableOpacity>
     )}
-    <View style={{ backgroundColor: statusStyle.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-      <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report?.status?.toUpperCase() || "UNKNOWN"}</Text>
-    </View>
+    {report?.status && (
+      <View style={{ backgroundColor: statusStyle.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
+        <Text style={{ fontSize: 12, fontWeight: "bold", color: statusStyle.text }}>{report.status.toUpperCase()}</Text>
+      </View>
+    )}
   </View>
 </View>
           {/* Meta Info */}
