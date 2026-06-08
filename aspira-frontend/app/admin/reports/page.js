@@ -13,8 +13,6 @@ export default function AdminReportsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-
-  // Track status per-row secara lokal supaya langsung update tanpa nunggu refetch
   const [localStatuses, setLocalStatuses] = useState({});
 
   const fetchReports = async () => {
@@ -24,7 +22,6 @@ export default function AdminReportsPage() {
       if (Array.isArray(data)) {
         setReports(data);
         setFiltered(data);
-        // Reset local statuses saat fetch ulang
         const initial = {};
         data.forEach((r) => { initial[r.id] = r.status; });
         setLocalStatuses(initial);
@@ -36,9 +33,7 @@ export default function AdminReportsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  useEffect(() => { fetchReports(); }, []);
 
   useEffect(() => {
     let temp = [...reports];
@@ -49,29 +44,22 @@ export default function AdminReportsPage() {
           r.user_name?.toLowerCase().includes(search.toLowerCase())
       );
     }
-    if (statusFilter !== "all") {
-      temp = temp.filter((r) => (localStatuses[r.id] || r.status) === statusFilter);
-    }
-    if (categoryFilter !== "all") {
-      temp = temp.filter((r) => r.category_name === categoryFilter);
-    }
-    if (priorityFilter !== "all") {
-      temp = temp.filter((r) => r.priority?.toLowerCase() === priorityFilter);
-    }
+    if (statusFilter !== "all") temp = temp.filter((r) => (localStatuses[r.id] || r.status) === statusFilter);
+    if (categoryFilter !== "all") temp = temp.filter((r) => r.category_name === categoryFilter);
+    if (priorityFilter !== "all") temp = temp.filter((r) => r.priority?.toLowerCase() === priorityFilter);
     setFiltered(temp);
   }, [search, statusFilter, categoryFilter, priorityFilter, reports, localStatuses]);
 
   const updateStatus = async (id, newStatus) => {
-    // Update lokal dulu supaya badge langsung berubah
     setLocalStatuses((prev) => ({ ...prev, [id]: newStatus }));
     try {
       const res = await api(`/admin/reports/${id}/status`, {
         method: "PUT",
         body: JSON.stringify({ status: newStatus }),
       });
+      console.log("updateStatus response:", res);
       if (!res.message || !res.message.includes("berhasil")) {
         alert("Error dari server: " + JSON.stringify(res));
-        // Rollback kalau gagal
         fetchReports();
       }
     } catch (err) {
@@ -109,12 +97,13 @@ export default function AdminReportsPage() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:      { bg: "#fff7d6", color: "#b07d00", label: "Pending" },
-      diproses:     { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },
-      diverifikasi: { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi" },
-      tindak_lanjut:{ bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
-      selesai:      { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" },
-      rejected:     { bg: "#fde8e8", color: "#c0392b", label: "Ditolak" },
+      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Menunggu" },
+      diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa" },
+      diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },
+      diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi" },
+      tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
+      selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai" },
+      rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak" },
     };
     return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status };
   };
@@ -165,7 +154,7 @@ export default function AdminReportsPage() {
         <div style={styles.dropdownRow}>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={styles.select}>
             <option value="all">Semua Status ({reports.length})</option>
-            <option value="pending">Pending ({statusCounts.pending || 0})</option>
+            <option value="pending">Menunggu ({statusCounts.pending || 0})</option>
             <option value="diproses">Diproses ({statusCounts.diproses || 0})</option>
             <option value="diverifikasi">Diverifikasi ({statusCounts.diverifikasi || 0})</option>
             <option value="tindak_lanjut">Tindak Lanjut ({statusCounts.tindak_lanjut || 0})</option>
@@ -226,13 +215,13 @@ export default function AdminReportsPage() {
                     <td style={styles.td}>{new Date(report.created_at).toLocaleDateString("id-ID")}</td>
                     <td style={styles.td}>
                       <div style={styles.actionWrap}>
-                        {/* Dropdown ini yang mengubah badge Status di atas secara sinkron */}
                         <select
                           value={currentStatus}
                           onChange={(e) => updateStatus(report.id, e.target.value)}
                           style={styles.statusSelect}
                         >
-                          <option value="pending">Pending</option>
+                          <option value="pending">Menunggu</option>
+                          <option value="diperiksa">Diperiksa</option>
                           <option value="diproses">Diproses</option>
                           <option value="diverifikasi">Diverifikasi</option>
                           <option value="tindak_lanjut">Tindak Lanjut</option>
@@ -265,111 +254,57 @@ export default function AdminReportsPage() {
 const styles = {
   loadingWrap: { minHeight: "60vh", display: "flex", justifyContent: "center", alignItems: "center" },
   filterBlock: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    background: "#fff",
-    padding: 18,
-    borderRadius: 18,
+    display: "flex", flexDirection: "column", gap: 10,
+    background: "#fff", padding: 18, borderRadius: 18,
     border: "1px solid rgba(0,75,141,0.08)",
     boxShadow: "0 2px 12px rgba(0,75,141,0.06)",
   },
   searchBox: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    border: "1px solid #e2e8f0",
-    borderRadius: 12,
-    padding: "0 14px",
-    background: "#f8fafd",
+    display: "flex", alignItems: "center", gap: 8,
+    border: "1px solid #e2e8f0", borderRadius: 12,
+    padding: "0 14px", background: "#f8fafd",
   },
   searchInput: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    padding: "11px 0",
-    fontSize: 14,
-    background: "transparent",
-    color: "#001f3d",
+    flex: 1, border: "none", outline: "none",
+    padding: "11px 0", fontSize: 14,
+    background: "transparent", color: "#001f3d",
     fontFamily: "'Inter', system-ui",
   },
   dropdownRow: { display: "flex", gap: 10 },
   select: {
-    flex: 1,
-    border: "1px solid #e2e8f0",
-    borderRadius: 12,
-    padding: "9px 12px",
-    fontSize: 13,
-    cursor: "pointer",
-    background: "#f8fafd",
-    color: "#001f3d",
-    outline: "none",
+    flex: 1, border: "1px solid #e2e8f0", borderRadius: 12,
+    padding: "9px 12px", fontSize: 13, cursor: "pointer",
+    background: "#f8fafd", color: "#001f3d", outline: "none",
   },
   tableWrap: {
-    background: "#fff",
-    borderRadius: 20,
-    overflow: "hidden",
+    background: "#fff", borderRadius: 20, overflow: "hidden",
     border: "1px solid rgba(0,75,141,0.08)",
     boxShadow: "0 2px 12px rgba(0,75,141,0.06)",
   },
   table: { width: "100%", borderCollapse: "collapse" },
   th: {
-    textAlign: "left",
-    padding: "14px 18px",
-    background: "#f8f9ff",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#3a5068",
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
+    textAlign: "left", padding: "14px 18px", background: "#f8f9ff",
+    fontSize: 12, fontWeight: 700, color: "#3a5068",
+    textTransform: "uppercase", letterSpacing: "0.06em",
     borderBottom: "1px solid rgba(0,75,141,0.08)",
   },
   tr: { transition: "background 0.15s" },
-  td: {
-    padding: "15px 18px",
-    borderTop: "1px solid #f1f5fb",
-    fontSize: 14,
-    color: "#001f3d",
-  },
-  badge: {
-    display: "inline-block",
-    padding: "4px 12px",
-    borderRadius: 40,
-    fontSize: 12,
-    fontWeight: 600,
-  },
+  td: { padding: "15px 18px", borderTop: "1px solid #f1f5fb", fontSize: 14, color: "#001f3d" },
+  badge: { display: "inline-block", padding: "4px 12px", borderRadius: 40, fontSize: 12, fontWeight: 600 },
   actionWrap: { display: "flex", alignItems: "center", gap: 8 },
   detailBtn: {
-    width: 34,
-    height: 34,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    background: "#e8f5ff",
-    color: "#004b8d",
-    textDecoration: "none",
+    width: 34, height: 34, display: "flex", alignItems: "center",
+    justifyContent: "center", borderRadius: 10,
+    background: "#e8f5ff", color: "#004b8d", textDecoration: "none",
   },
   deleteBtn: {
-    width: 34,
-    height: 34,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    background: "#fde8e8",
-    color: "#c0392b",
-    border: "none",
-    cursor: "pointer",
+    width: 34, height: 34, display: "flex", alignItems: "center",
+    justifyContent: "center", borderRadius: 10,
+    background: "#fde8e8", color: "#c0392b", border: "none", cursor: "pointer",
   },
   statusSelect: {
-    padding: "7px 10px",
-    borderRadius: 10,
-    border: "1px solid #e2e8f0",
-    fontSize: 12,
-    background: "#f8fafd",
-    color: "#001f3d",
-    cursor: "pointer",
+    padding: "7px 10px", borderRadius: 10, border: "1px solid #e2e8f0",
+    fontSize: 12, background: "#f8fafd", color: "#001f3d", cursor: "pointer",
   },
   empty: { textAlign: "center", padding: 48, color: "#8a9bb0", fontSize: 14 },
 };

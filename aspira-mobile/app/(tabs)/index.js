@@ -5,6 +5,24 @@ import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 
+const STATUS_CONFIG = {
+  pending:       { bg: "#fff7d6", color: "#b07d00", label: "Menunggu"      },
+  diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa"     },
+  diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses"      },
+  diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi"  },
+  tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut" },
+  selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai"       },
+  ditolak:       { bg: "#fde8e8", color: "#c0392b", label: "Ditolak"       },
+  rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak"       },
+};
+
+const PRIORITY_CONFIG = {
+  urgent: { color: "#ef4444", label: "Mendesak" },
+  high:   { color: "#ef4444", label: "Tinggi"   },
+  medium: { color: "#f59e0b", label: "Sedang"   },
+  low:    { color: "#3b82f6", label: "Rendah"   },
+};
+
 export default function Home() {
   const [pengaduan, setPengaduan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,12 +41,10 @@ export default function Home() {
       }
 
       const res = await api.get("/reports/my", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (Array.isArray(res.data)) {
-        setPengaduan(res.data);
-      }
+      if (Array.isArray(res.data)) setPengaduan(res.data);
     } catch (err) {
       console.log("Fetch Error:", err);
     } finally {
@@ -37,29 +53,27 @@ export default function Home() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchReports();
-    }, [])
-  );
+  useFocusEffect(useCallback(() => { fetchReports(); }, []));
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchReports();
   }, []);
 
-  const total = pengaduan.length;
-  const selesai = pengaduan.filter((t) => t.status === "selesai").length;
-  const menunggu = pengaduan.filter((t) => t.status === "pending").length;
-  const diproses = pengaduan.filter((t) => ["diproses", "diperiksa", "diverifikasi", "tindak_lanjut", "process"].includes(t.status)).length;
+  const total    = pengaduan.length;
+  const selesai  = pengaduan.filter((t) => t.status === "selesai").length;
+  const pending  = pengaduan.filter((t) => t.status === "pending").length;
+  const diproses = pengaduan.filter((t) =>
+    ["diproses", "diperiksa", "diverifikasi", "tindak_lanjut", "process"].includes(t.status)
+  ).length;
 
   const recentPengaduan = [...pengaduan].reverse().slice(0, 5);
 
   const stats = [
-    { label: "Total", value: total, color: "#2563eb", bg: "#eff6ff", icon: "file-text" },
-    { label: "Menunggu", value: menunggu, color: "#f59e0b", bg: "#fef3c7", icon: "clock" },
-    { label: "Diproses", value: diproses, color: "#9333ea", bg: "#faf5ff", icon: "loader" },
-    { label: "Selesai", value: selesai, color: "#16a34a", bg: "#f0fdf4", icon: "check-circle" },
+    { label: "Total",    value: total,    color: "#2563eb", bg: "#eff6ff", icon: "file-text"   },
+    { label: "Menunggu", value: pending,  color: "#f59e0b", bg: "#fef3c7", icon: "clock"        },
+    { label: "Diproses", value: diproses, color: "#9333ea", bg: "#faf5ff", icon: "loader"       },
+    { label: "Selesai",  value: selesai,  color: "#16a34a", bg: "#f0fdf4", icon: "check-circle" },
   ];
 
   return (
@@ -116,41 +130,43 @@ export default function Home() {
             <Text style={{ fontSize: 14, color: "#9ca3af", textAlign: "center", paddingHorizontal: 32 }}>Klik tombol "Buat" untuk mengirim laporan masyarakat.</Text>
           </View>
         ) : (
-          recentPengaduan.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => router.push(`/report/${item.id}`)}
-              style={{ backgroundColor: "#ffffff", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f3f4f6" }}
-            >
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#111827", flex: 1 }} numberOfLines={1}>{item.title}</Text>
-                <View style={{
-                  backgroundColor: item.status === "selesai" ? "#dcfce7" : item.status === "pending" ? "#fef3c7" : "#f3e8ff",
-                  paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20
-                }}>
-                  <Text style={{
-                    fontSize: 12, fontWeight: "bold",
-                    color: item.status === "selesai" ? "#16a34a" : item.status === "pending" ? "#d97706" : "#9333ea"
-                  }}>
-                    {item.status?.toUpperCase() || item.status}
+          recentPengaduan.map((item) => {
+            const status   = STATUS_CONFIG[item.status]                    || STATUS_CONFIG.pending;
+            const priority = PRIORITY_CONFIG[item.priority?.toLowerCase()] || PRIORITY_CONFIG.low;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => router.push(`/report/${item.id}`)}
+                style={{ backgroundColor: "#ffffff", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f3f4f6" }}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text style={{ fontSize: 16, fontWeight: "bold", color: "#111827", flex: 1 }} numberOfLines={1}>
+                    {item.title}
                   </Text>
+                  <View style={{ backgroundColor: status.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
+                    <Text style={{ fontSize: 12, fontWeight: "bold", color: status.color }}>
+                      {status.label}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }} numberOfLines={2}>{item.description}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 12 }}>
-                  <Feather name="map-pin" size={14} color="#9ca3af" />
-                  <Text style={{ fontSize: 13, color: "#9ca3af", marginLeft: 4 }} numberOfLines={1}>{item.location || "Lokasi tidak tersedia"}</Text>
+                <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }} numberOfLines={2}>{item.description}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 12 }}>
+                    <Feather name="map-pin" size={14} color="#9ca3af" />
+                    <Text style={{ fontSize: 13, color: "#9ca3af", marginLeft: 4 }} numberOfLines={1}>
+                      {item.location || "Lokasi tidak tersedia"}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: priority.color, marginRight: 4 }} />
+                    <Text style={{ fontSize: 12, color: priority.color, fontWeight: "500" }}>
+                      {priority.label}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6', marginRight: 4 }} />
-                  <Text style={{ fontSize: 12, color: item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6', fontWeight: "500" }}>
-                    {item.priority === 'high' ? 'Tinggi' : item.priority === 'medium' ? 'Sedang' : 'Rendah'}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
+              </TouchableOpacity>
+            );
+          })
         )}
       </View>
     </ScrollView>

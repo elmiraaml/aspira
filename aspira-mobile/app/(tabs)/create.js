@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  Image, Alert, ActivityIndicator, Platform, Animated
+  Image, ActivityIndicator, Platform, Animated
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -10,7 +12,6 @@ import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
-// ── Animasi Sukses (web-compatible, tanpa Modal) ──
 function SuccessOverlay({ visible, reportTitle }) {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -38,10 +39,7 @@ function SuccessOverlay({ visible, reportTitle }) {
 
   if (!visible) return null;
 
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0%", "100%"],
-  });
+  const progressWidth = progressAnim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] });
 
   return (
     <Animated.View style={{
@@ -64,24 +62,17 @@ function SuccessOverlay({ visible, reportTitle }) {
         }}>
           <Feather name="check-circle" size={48} color="#16a34a" />
         </Animated.View>
-
         <Text style={{ fontSize: 20, fontWeight: "700", color: "#111827", marginBottom: 8, textAlign: "center" }}>
           Laporan Terkirim!
         </Text>
         <Text style={{ fontSize: 14, color: "#6b7280", textAlign: "center", lineHeight: 22, marginBottom: 6 }}>
-          Laporan{" "}
-          <Text style={{ fontWeight: "600", color: "#374151" }}>"{reportTitle}"</Text>
-          {" "}berhasil dikirim.
+          Laporan <Text style={{ fontWeight: "600", color: "#374151" }}>"{reportTitle}"</Text> berhasil dikirim.
         </Text>
         <Text style={{ fontSize: 13, color: "#9ca3af", textAlign: "center", lineHeight: 20, marginBottom: 24 }}>
           Tim kami akan segera meninjau pengaduan Anda dan memberikan tindak lanjut secepatnya.
         </Text>
-
         <View style={{ width: "100%", height: 4, backgroundColor: "#f3f4f6", borderRadius: 2, overflow: "hidden" }}>
-          <Animated.View style={{
-            height: "100%", backgroundColor: "#16a34a",
-            borderRadius: 2, width: progressWidth,
-          }} />
+          <Animated.View style={{ height: "100%", backgroundColor: "#16a34a", borderRadius: 2, width: progressWidth }} />
         </View>
         <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>Mengalihkan halaman...</Text>
       </Animated.View>
@@ -89,7 +80,6 @@ function SuccessOverlay({ visible, reportTitle }) {
   );
 }
 
-// ── Label + Icon helper ──
 function SectionLabel({ iconName, iconColor, iconBg, label }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
@@ -101,7 +91,6 @@ function SectionLabel({ iconName, iconColor, iconBg, label }) {
   );
 }
 
-// ── Nilai form kosong ──
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -112,7 +101,6 @@ const EMPTY_FORM = {
   image: null,
 };
 
-// ── Main ──
 export default function Create() {
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
@@ -120,10 +108,7 @@ export default function Create() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedTitle, setSubmittedTitle] = useState("");
   const [inAppAlert, setInAppAlert] = useState({ type: "", message: "" });
-
   const [formData, setFormData] = useState(EMPTY_FORM);
-
-  // State untuk DateTimePicker mobile
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => { fetchCategories(); }, []);
@@ -141,11 +126,7 @@ export default function Create() {
   };
 
   const updateField = (key, value) => setFormData((prev) => ({ ...prev, [key]: value }));
-
-  // ── Alert di dalam app (kotak merah/hijau di UI) ──
-  const showAlert = (type, message) => {
-    setInAppAlert({ type, message });
-  };
+  const showAlert = (type, message) => setInAppAlert({ type, message });
 
   const handlePickImage = async () => {
     if (Platform.OS === "web") {
@@ -184,30 +165,14 @@ export default function Create() {
     }
   };
 
-  // ── Validasi per-field ──
   const validate = () => {
-    const { title, description, category_id, location, incident_date } = formData;
-
-    if (!title.trim()) {
-      showAlert("error", "Judul laporan wajib diisi.");
-      return false;
-    }
-    if (!description.trim()) {
-      showAlert("error", "Deskripsi kejadian wajib diisi.");
-      return false;
-    }
-    if (!category_id) {
-      showAlert("error", "Kategori laporan wajib dipilih.");
-      return false;
-    }
-    if (!location.trim()) {
-      showAlert("error", "Lokasi kejadian wajib diisi.");
-      return false;
-    }
-    if (!incident_date) {
-      showAlert("error", "Tanggal kejadian wajib diisi.");
-      return false;
-    }
+    const { title, description, category_id, location, incident_date, image } = formData;
+    if (!title.trim())       { showAlert("error", "Judul laporan wajib diisi.");        return false; }
+    if (!description.trim()) { showAlert("error", "Deskripsi kejadian wajib diisi.");   return false; }
+    if (!category_id)        { showAlert("error", "Kategori laporan wajib dipilih.");   return false; }
+    if (!location.trim())    { showAlert("error", "Lokasi kejadian wajib diisi.");      return false; }
+    if (!incident_date)      { showAlert("error", "Tanggal kejadian wajib diisi.");     return false; }
+    if (!image)              { showAlert("error", "Foto bukti wajib diupload.");        return false; }
     return true;
   };
 
@@ -256,31 +221,24 @@ export default function Create() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Response:", res.status, res.data);
-
       if (res.status === 201 || res.status === 200) {
         const sentTitle = formData.title.trim();
-
-        // ── Reset semua field ──
         setFormData(EMPTY_FORM);
         setInAppAlert({ type: "", message: "" });
-
         setSubmittedTitle(sentTitle);
         setShowSuccess(true);
         setTimeout(() => {
-  setShowSuccess(false);
-  router.replace("/(tabs)");
-}, 3000);
+          setShowSuccess(false);
+          router.replace("/(tabs)");
+        }, 3000);
       }
     } catch (err) {
-      console.log("Submit error:", err.response?.data || err.message);
       showAlert("error", err.response?.data?.message || "Gagal mengirim laporan");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Format tanggal "YYYY-MM-DD" → "MM/DD/YYYY" untuk tampilan ──
   const formatDateDisplay = (isoDate) => {
     if (!isoDate) return "";
     const [year, month, day] = isoDate.split("-");
@@ -312,24 +270,20 @@ export default function Create() {
 
         <View style={{ padding: 20 }}>
 
-          {/* IN-APP ALERT */}
+          {/* ALERT */}
           {inAppAlert.message ? (
             <View style={{
               flexDirection: "row", alignItems: "center", gap: 10,
-              marginBottom: 16, padding: 14, borderRadius: 16,
-              borderWidth: 1,
+              marginBottom: 16, padding: 14, borderRadius: 16, borderWidth: 1,
               backgroundColor: inAppAlert.type === "success" ? "#f0fdf4" : "#fef2f2",
-              borderColor: inAppAlert.type === "success" ? "#bbf7d0" : "#fecaca",
+              borderColor:     inAppAlert.type === "success" ? "#bbf7d0" : "#fecaca",
             }}>
               <Feather
                 name={inAppAlert.type === "success" ? "check-circle" : "alert-circle"}
                 size={16}
                 color={inAppAlert.type === "success" ? "#16a34a" : "#dc2626"}
               />
-              <Text style={{
-                fontSize: 13, fontWeight: "500", flex: 1,
-                color: inAppAlert.type === "success" ? "#16a34a" : "#dc2626",
-              }}>
+              <Text style={{ fontSize: 13, fontWeight: "500", flex: 1, color: inAppAlert.type === "success" ? "#16a34a" : "#dc2626" }}>
                 {inAppAlert.message}
               </Text>
             </View>
@@ -339,10 +293,8 @@ export default function Create() {
           <View style={cardStyle}>
             <SectionLabel iconName="file-text" iconColor="#9333ea" iconBg="#faf5ff" label="Judul Laporan *" />
             <TextInput
-              placeholder="Masukkan judul laporan..."
-              placeholderTextColor="#9ca3af"
-              value={formData.title}
-              onChangeText={(t) => updateField("title", t)}
+              placeholder="Masukkan judul laporan..." placeholderTextColor="#9ca3af"
+              value={formData.title} onChangeText={(t) => updateField("title", t)}
               style={inputStyle}
             />
           </View>
@@ -351,11 +303,9 @@ export default function Create() {
           <View style={cardStyle}>
             <SectionLabel iconName="align-left" iconColor="#d97706" iconBg="#fef3c7" label="Deskripsi *" />
             <TextInput
-              placeholder="Jelaskan kejadian secara lengkap dan jelas..."
-              placeholderTextColor="#9ca3af"
+              placeholder="Jelaskan kejadian secara lengkap dan jelas..." placeholderTextColor="#9ca3af"
               multiline numberOfLines={4} textAlignVertical="top"
-              value={formData.description}
-              onChangeText={(t) => updateField("description", t)}
+              value={formData.description} onChangeText={(t) => updateField("description", t)}
               style={[inputStyle, { minHeight: 100 }]}
             />
           </View>
@@ -401,10 +351,8 @@ export default function Create() {
           <View style={cardStyle}>
             <SectionLabel iconName="map-pin" iconColor="#16a34a" iconBg="#dcfce7" label="Lokasi Kejadian *" />
             <TextInput
-              placeholder="Contoh: Jakarta Timur"
-              placeholderTextColor="#9ca3af"
-              value={formData.location}
-              onChangeText={(t) => updateField("location", t)}
+              placeholder="Contoh: Jakarta Timur" placeholderTextColor="#9ca3af"
+              value={formData.location} onChangeText={(t) => updateField("location", t)}
               style={inputStyle}
             />
           </View>
@@ -416,23 +364,24 @@ export default function Create() {
               <input
                 type="date"
                 value={formData.incident_date}
-                max={new Date().toISOString().split("T")[0]}
+                max={(() => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+})()}
                 onChange={(e) => updateField("incident_date", e.target.value)}
-                required
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 12,
                   border: "1px solid #f3f4f6", backgroundColor: "#f9fafb",
-                  fontSize: 15, color: "#374151", outline: "none",
-                  boxSizing: "border-box",
+                  fontSize: 15, color: "#374151", outline: "none", boxSizing: "border-box",
                 }}
               />
             ) : (
               (() => {
                 const DateTimePicker = require("@react-native-community/datetimepicker").default;
-                const dateForPicker = formData.incident_date
-                  ? new Date(formData.incident_date)
-                  : new Date();
-
+                const dateForPicker = formData.incident_date ? new Date(formData.incident_date) : new Date();
                 return (
                   <>
                     <TouchableOpacity
@@ -440,17 +389,14 @@ export default function Create() {
                       style={[inputStyle, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}
                     >
                       <Text style={{ fontSize: 15, color: formData.incident_date ? "#374151" : "#9ca3af" }}>
-                        {formData.incident_date
-                          ? formatDateDisplay(formData.incident_date)
-                          : "mm/dd/yyyy"}
+                        {formData.incident_date ? formatDateDisplay(formData.incident_date) : "mm/dd/yyyy"}
                       </Text>
                       <Feather name="calendar" size={16} color="#9ca3af" />
                     </TouchableOpacity>
                     {showDatePicker && (
                       <DateTimePicker
                         value={dateForPicker}
-                        mode="date"
-                        display="default"
+                        mode="date" display="default"
                         maximumDate={new Date()}
                         onChange={(event, selectedDate) => {
                           setShowDatePicker(Platform.OS === "ios");
@@ -479,9 +425,10 @@ export default function Create() {
                   fontSize: 15, color: "#374151", outline: "none", cursor: "pointer",
                 }}
               >
-                <option value="low">Rendah (Low)</option>
-                <option value="medium">Sedang (Medium)</option>
-                <option value="high">Tinggi (High)</option>
+                <option value="low">Rendah</option>
+                <option value="medium">Sedang</option>
+                <option value="high">Tinggi</option>
+                <option value="urgent">Mendesak</option>
               </select>
             ) : (
               <View style={{ backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#f3f4f6", borderRadius: 12, overflow: "hidden" }}>
@@ -490,9 +437,10 @@ export default function Create() {
                   onValueChange={(val) => updateField("priority", val)}
                   style={{ color: "#374151" }}
                 >
-                  <Picker.Item label="Rendah (Low)" value="low" color="#374151" />
-                  <Picker.Item label="Sedang (Medium)" value="medium" color="#374151" />
-                  <Picker.Item label="Tinggi (High)" value="high" color="#374151" />
+                  <Picker.Item label="Rendah"   value="low"    color="#374151" />
+                  <Picker.Item label="Sedang"   value="medium" color="#374151" />
+                  <Picker.Item label="Tinggi"   value="high"   color="#374151" />
+                  <Picker.Item label="Mendesak" value="urgent" color="#374151" />
                 </Picker>
               </View>
             )}
@@ -500,12 +448,14 @@ export default function Create() {
 
           {/* FOTO BUKTI */}
           <View style={cardStyle}>
-            <SectionLabel iconName="image" iconColor="#9333ea" iconBg="#faf5ff" label="Foto Bukti (Opsional)" />
+            <SectionLabel iconName="image" iconColor="#9333ea" iconBg="#faf5ff" label="Foto Bukti *" />
             <TouchableOpacity
               onPress={handlePickImage}
               style={{
-                borderWidth: 2, borderColor: "#e5e7eb", borderStyle: "dashed",
-                borderRadius: 16, padding: 24, alignItems: "center", justifyContent: "center",
+                borderWidth: 2,
+                borderColor: !formData.image && inAppAlert.message.includes("Foto bukti") ? "#fca5a5" : "#e5e7eb",
+                borderStyle: "dashed", borderRadius: 16, padding: 24,
+                alignItems: "center", justifyContent: "center",
                 backgroundColor: formData.image ? "#ffffff" : "#f9fafb",
               }}
             >

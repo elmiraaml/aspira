@@ -233,7 +233,7 @@ setTimeout(() => {
               <input
                 type="date"
                 value={formData.incident_date}
-                max={new Date().toISOString().split("T")[0]}
+                max={(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })()}
                 onChange={(e) => updateField("incident_date", e.target.value)}
                 style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #f3f4f6", backgroundColor: "#f9fafb", fontSize: 15, color: "#374151", outline: "none", boxSizing: "border-box" }}
               />

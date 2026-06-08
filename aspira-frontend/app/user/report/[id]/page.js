@@ -142,7 +142,7 @@ export default function UserReportDetailPage() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Pending",        icon: Clock },
+      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Menunggu",        icon: Clock },
       diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",      icon: Activity },
       diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
       diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },

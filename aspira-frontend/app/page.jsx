@@ -239,11 +239,6 @@ export default function RieLanding() {
       }}>
         <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, background: "#2563eb", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" }}>Aspira</div>
               <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 500, marginTop: -1 }}>Layanan Pengaduan Online</div>
@@ -275,43 +270,44 @@ export default function RieLanding() {
       </nav>
 
       {/* HERO */}
-      <section style={{ paddingTop: 100, paddingBottom: 80, padding: "100px 24px 80px" }}>
-        <div style={{ maxWidth: 1160, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
-          
-          {/* LEFT */}
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "5px 14px", marginBottom: 20 }}>
-              <span style={{ width: 6, height: 6, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />
-              <span style={{ fontSize: 12, color: "#2563eb", fontWeight: 600 }}>Sistem Pengaduan Masyarakat</span>
-            </div>
+<section style={{ padding: "80px 24px", display: "flex", justifyContent: "center" }}>
+  <div style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
 
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, lineHeight: 1.1, color: "#111827", marginBottom: 20 }}>
-              Suara Anda,<br />
-              <span style={{ color: "#2563eb" }}>Didengar.</span>
-            </h1>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "5px 14px", marginBottom: 20 }}>
+      <span style={{ width: 6, height: 6, background: "#2563eb", borderRadius: "50%", display: "inline-block" }} />
+      <span style={{ fontSize: 12, color: "#2563eb", fontWeight: 500 }}>Sistem Pengaduan Masyarakat</span>
+    </div>
 
-            <p style={{ fontSize: 15.5, color: "#6b7280", lineHeight: 1.7, marginBottom: 32, maxWidth: 440 }}>
-              Sampaikan laporan Anda langsung kepada instansi pemerintah berwenang secara <strong style={{ color: "#374151" }}>mudah</strong>, <strong style={{ color: "#374151" }}>cepat</strong>, dan <strong style={{ color: "#374151" }}>aman</strong>.
-            </p>
+    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, lineHeight: 1.1, color: "#111827", margin: "0 0 20px", fontWeight: 400 }}>
+      Suara Anda,<br />
+      <span style={{ color: "#2563eb" }}>Didengar.</span>
+    </h1>
 
-            <div style={{ display: "flex", gap: 12, marginBottom: 40 }}>
-              <button className="btn-primary" style={{ padding: "12px 26px", fontSize: 14 }}>
-                Buat Pengaduan
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              <button className="btn-ghost" style={{ padding: "12px 26px", fontSize: 14 }}>Pelajari Lebih</button>
-            </div>
+    <p style={{ fontSize: 15.5, color: "#6b7280", lineHeight: 1.7, margin: "0 0 32px" }}>
+      Sampaikan laporan Anda langsung kepada instansi pemerintah berwenang secara{" "}
+      <strong style={{ color: "#374151" }}>mudah</strong>,{" "}
+      <strong style={{ color: "#374151" }}>cepat</strong>, dan{" "}
+      <strong style={{ color: "#374151" }}>aman</strong>.
+    </p>
 
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              {["✅ Terverifikasi Resmi", "🔒 Data Aman & Rahasia", "⚡ Respons 1×24 Jam"].map(t => (
-                <span key={t} style={{ fontSize: 12.5, color: "#6b7280", fontWeight: 500 }}>{t}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+    <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
+      <button className="btn-primary" style={{ padding: "12px 26px", fontSize: 14 }}>
+        Buat Pengaduan
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </button>
+      <button className="btn-ghost" style={{ padding: "12px 26px", fontSize: 14 }}>Pelajari Lebih</button>
+    </div>
+
+    <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
+      {["✅ Terverifikasi Resmi", "🔒 Data Aman & Rahasia", "⚡ Respons 1×24 Jam"].map(t => (
+        <span key={t} style={{ fontSize: 12.5, color: "#6b7280", fontWeight: 500 }}>{t}</span>
+      ))}
+    </div>
+
+  </div>
+</section>
 
       {/* STATS */}
       <section style={{ background: "#fff", borderTop: "1px solid #e8edf5", borderBottom: "1px solid #e8edf5", padding: "48px 24px" }}>

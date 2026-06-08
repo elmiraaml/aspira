@@ -66,7 +66,7 @@ export default function SuperAdminReportsPage() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Menunggu" },
+      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Pending" },
       diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa" },
       diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi" },
       diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses" },

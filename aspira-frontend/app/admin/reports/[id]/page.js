@@ -151,7 +151,7 @@ export default function AdminReportDetailPage() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Pending",        icon: Clock },
+      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Menunggu",        icon: Clock },
       diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",      icon: Activity },
       diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
       diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },
@@ -278,7 +278,7 @@ export default function AdminReportDetailPage() {
             onChange={(e) => setNewStatus(e.target.value)}
             className="w-full px-4 py-3 rounded-2xl border border-gray-200 outline-none text-sm text-gray-700 mb-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="pending">Pending</option>
+            <option value="pending">Menunggu</option>
             <option value="diproses">Diproses</option>
             <option value="diperiksa">Diperiksa</option>
             <option value="diverifikasi">Diverifikasi</option>

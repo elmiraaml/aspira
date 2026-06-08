@@ -42,7 +42,7 @@ export default function MyReportsPage() {
   const getStatusConfig = (status) => {
     switch (status) {
       case "pending":
-        return { label: "Menunggu", color: "text-amber-500", bg: "bg-amber-50", icon: <Clock3 size={13} /> };
+        return { label: "Pending", color: "text-amber-500", bg: "bg-amber-50", icon: <Clock3 size={13} /> };
       case "diperiksa":
         return { label: "Diperiksa", color: "text-blue-600", bg: "bg-blue-50", icon: <LoaderCircle size={13} /> };
       case "diverifikasi":

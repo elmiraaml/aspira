@@ -5,6 +5,24 @@ import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 
+const STATUS_CONFIG = {
+  pending:       { bg: "#fff7d6", color: "#b07d00", label: "Menunggu",      icon: "clock"        },
+  diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa",     icon: "loader"       },
+  diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses",      icon: "loader"       },
+  diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi",  icon: "loader"       },
+  tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut", icon: "loader"       },
+  selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai",       icon: "check-circle" },
+  ditolak:       { bg: "#fde8e8", color: "#c0392b", label: "Ditolak",       icon: "x-circle"     },
+  rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak",       icon: "x-circle"     },
+};
+
+const PRIORITY_CONFIG = {
+  urgent: { color: "#ef4444", label: "Mendesak" },
+  high:   { color: "#ef4444", label: "Tinggi"   },
+  medium: { color: "#f59e0b", label: "Sedang"   },
+  low:    { color: "#3b82f6", label: "Rendah"   },
+};
+
 export default function History() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,14 +32,10 @@ export default function History() {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) return;
-      
       const res = await api.get("/reports/my", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
-      if (Array.isArray(res.data)) {
-        setReports(res.data);
-      }
+      if (Array.isArray(res.data)) setReports(res.data);
     } catch (err) {
       console.log("Fetch Error:", err);
     } finally {
@@ -30,25 +44,15 @@ export default function History() {
     }
   };
 
-useFocusEffect(
-  useCallback(() => {
-    fetchReports();
-  }, [])
-);
+  useFocusEffect(useCallback(() => { fetchReports(); }, []));
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchReports();
   }, []);
 
-  const getStatusColor = (status) => {
-    if (status === "selesai") return { bg: "#dcfce7", text: "#16a34a", icon: "check-circle" };
-    if (status === "pending") return { bg: "#fef3c7", text: "#d97706", icon: "clock" };
-    return { bg: "#f3e8ff", text: "#9333ea", icon: "loader" };
-  };
-
   return (
-    <ScrollView 
+    <ScrollView
       style={{ flex: 1, backgroundColor: "#f8fafd" }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
@@ -67,7 +71,7 @@ useFocusEffect(
             </View>
             <Text style={{ fontSize: 18, fontWeight: "bold", color: "#374151", marginBottom: 4 }}>Belum ada laporan</Text>
             <Text style={{ fontSize: 14, color: "#9ca3af", textAlign: "center", paddingHorizontal: 32 }}>Anda belum pernah membuat laporan pengaduan.</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.push("/(tabs)/create")}
               style={{ marginTop: 20, backgroundColor: "#2563eb", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 }}
             >
@@ -76,12 +80,11 @@ useFocusEffect(
           </View>
         ) : (
           reports.map((item) => {
-            const statusConfig = getStatusColor(item.status);
-            const pColor = item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6';
-            const pText = item.priority === 'high' ? 'Tinggi' : item.priority === 'medium' ? 'Sedang' : 'Rendah';
+            const status   = STATUS_CONFIG[item.status]                    || STATUS_CONFIG.pending;
+            const priority = PRIORITY_CONFIG[item.priority?.toLowerCase()] || PRIORITY_CONFIG.low;
             return (
-              <TouchableOpacity 
-                key={item.id} 
+              <TouchableOpacity
+                key={item.id}
                 onPress={() => router.push(`/report/${item.id}`)}
                 style={{ backgroundColor: "#ffffff", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f3f4f6", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
               >
@@ -90,24 +93,23 @@ useFocusEffect(
                     {item.title}
                   </Text>
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: pColor, marginRight: 4 }} />
-                    <Text style={{ fontSize: 11, color: pColor, fontWeight: "500", marginRight: 8 }}>
-                      Prioritas {pText}
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: priority.color, marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, color: priority.color, fontWeight: "500" }}>
+                      Prioritas {priority.label}
                     </Text>
                   </View>
                   <Text style={{ fontSize: 12, color: "#9ca3af" }}>
-                    {item.category_name} • {item.incident_date ? item.incident_date.split('T')[0] : "-"}
+                    {item.category_name} • {item.incident_date
+                      ? new Date(item.incident_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                      : "-"}
                   </Text>
                 </View>
 
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <View style={{ 
-                    flexDirection: "row", alignItems: "center",
-                    backgroundColor: statusConfig.bg, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 
-                  }}>
-                    <Feather name={statusConfig.icon} size={12} color={statusConfig.text} style={{ marginRight: 4 }} />
-                    <Text style={{ fontSize: 11, fontWeight: "bold", color: statusConfig.text }}>
-                      {item.status?.toUpperCase() || item.status}
+                  <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: status.bg, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 }}>
+                    <Feather name={status.icon} size={12} color={status.color} style={{ marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, fontWeight: "bold", color: status.color }}>
+                      {status.label}
                     </Text>
                   </View>
                   <View style={{ width: 28, height: 28, borderRadius: 10, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center", marginLeft: 12 }}>

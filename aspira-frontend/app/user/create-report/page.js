@@ -334,13 +334,14 @@ export default function CreateReportPage() {
                       <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Tingkat Prioritas</p>
                     </div>
                     <select
-                      name="priority" value={formData.priority} onChange={handleChange} required
-                      className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
-                    >
-                      <option value="low">Rendah (Low)</option>
-                      <option value="medium">Sedang (Medium)</option>
-                      <option value="high">Tinggi (High)</option>
-                    </select>
+  name="priority" value={formData.priority} onChange={handleChange} required
+  className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
+>
+  <option value="low">Rendah</option>
+  <option value="medium">Sedang</option>
+  <option value="high">Tinggi</option>
+  <option value="urgent">Mendesak</option>
+</select>
                   </div>
                 </div>
 

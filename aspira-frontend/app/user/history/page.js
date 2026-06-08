@@ -3,121 +3,73 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/src/lib/api";
-import {
-  Loader2,
-  AlertCircle,
-  FileQuestion,
-  ChevronRight,
-  Clock3,
-  CheckCircle2,
-  XCircle,
-  LoaderCircle,
-} from "lucide-react";
+import { AlertCircle, FileQuestion, ChevronRight } from "lucide-react";
 
+const STATUS_CONFIG = {
+  pending:       { label: "Menunggu",      bg: "bg-amber-50",   text: "text-amber-600",  icon: "clock"        },
+  diperiksa:     { label: "Diperiksa",     bg: "bg-blue-50",    text: "text-blue-600",   icon: "loader"       },
+  diverifikasi:  { label: "Diverifikasi",  bg: "bg-indigo-50",  text: "text-indigo-600", icon: "loader"       },
+  diproses:      { label: "Diproses",      bg: "bg-purple-50",  text: "text-purple-600", icon: "loader"       },
+  tindak_lanjut: { label: "Tindak Lanjut", bg: "bg-pink-50",    text: "text-pink-600",   icon: "loader"       },
+  selesai:       { label: "Selesai",       bg: "bg-green-50",   text: "text-green-600",  icon: "check-circle" },
+  ditolak:       { label: "Ditolak",       bg: "bg-red-50",     text: "text-red-500",    icon: "x-circle"     },
+  rejected:      { label: "Ditolak",       bg: "bg-red-50",     text: "text-red-500",    icon: "x-circle"     },
+};
+
+const PRIORITY_CONFIG = {
+  urgent: { color: "text-red-600",     dot: "bg-red-500",     label: "Mendesak" },
+  high:   { color: "text-orange-600",  dot: "bg-orange-500",  label: "Tinggi"   },
+  medium: { color: "text-amber-600",   dot: "bg-amber-400",   label: "Sedang"   },
+  low:    { color: "text-emerald-600", dot: "bg-emerald-400", label: "Rendah"   },
+};
+
+const StatusIcon = ({ name, size = 12 }) => {
+  const icons = {
+    "clock":        <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    "loader":       <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>,
+    "check-circle": <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+    "x-circle":     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+  };
+  return icons[name] || null;
+};
+
+function formatTanggal(dateStr) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric", month: "short", year: "numeric",
+  });
+}
 
 export default function MyReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      const res = await api("/reports/my", { method: "GET" });
-      if (res.message && res.message === "Server error") throw new Error("Gagal mengambil data laporan");
-      setReports(res);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const res = await api("/reports/my", { method: "GET" });
+        if (res.message === "Server error") throw new Error("Gagal mengambil data laporan");
+        setReports(res);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchReports();
   }, []);
 
-  const getStatusConfig = (status) => {
-    switch (status) {
-      case "pending":
-        return {
-          label: "Menunggu",
-          color: "text-amber-500",
-          bg: "bg-amber-50",
-          icon: <Clock3 size={13} />,
-        };
-      case "diperiksa":
-        return {
-          label: "Diperiksa",
-          color: "text-blue-600",
-          bg: "bg-blue-50",
-          icon: <LoaderCircle size={13} />,
-        };
-      case "diverifikasi":
-        return {
-          label: "Diverifikasi",
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
-          icon: <LoaderCircle size={13} />,
-        };
-      case "diproses":
-        return {
-          label: "Diproses",
-          color: "text-purple-600",
-          bg: "bg-purple-50",
-          icon: <LoaderCircle size={13} />,
-        };
-      case "tindak_lanjut":
-        return {
-          label: "Tindak Lanjut",
-          color: "text-pink-600",
-          bg: "bg-pink-50",
-          icon: <LoaderCircle size={13} />,
-        };
-      case "selesai":
-        return {
-          label: "Selesai",
-          color: "text-green-600",
-          bg: "bg-green-50",
-          icon: <CheckCircle2 size={13} />,
-        };
-      case "ditolak":
-      case "rejected":
-        return {
-          label: "Ditolak",
-          color: "text-red-500",
-          bg: "bg-red-50",
-          icon: <XCircle size={13} />,
-        };
-      default:
-        return {
-          label: status,
-          color: "text-gray-500",
-          bg: "bg-gray-50",
-          icon: null,
-        };
-    }
-  };
-
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-     
-
-      {/* MAIN */}
       <div className="flex flex-col flex-1 min-w-0">
-      
-
-        {/* CONTENT */}
         <main className="flex-1 px-8 py-7">
 
-          {/* HEADER — sama persis gaya dashboard */}
+          {/* HEADER */}
           <div className="mb-6">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
-              Riwayat Pengaduan
-            </p>
-            <h3 className="text-lg text-gray-800 font-semibold">
-              History
-            </h3>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">Riwayat</p>
+            <h3 className="text-lg text-gray-800 font-semibold">Laporan Saya</h3>
           </div>
 
           {/* LOADING */}
@@ -143,9 +95,7 @@ export default function MyReportsPage() {
                 <FileQuestion size={26} />
               </div>
               <p className="text-gray-700 font-medium mb-1">Belum ada laporan</p>
-              <p className="text-sm text-gray-400 mb-5">
-                Klik tombol di bawah untuk membuat laporan pertama.
-              </p>
+              <p className="text-sm text-gray-400 mb-5">Anda belum pernah membuat laporan pengaduan.</p>
               <Link
                 href="/user/create-report"
                 className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-1.5 hover:opacity-90 hover:-translate-y-px transition-all shadow-md shadow-blue-200"
@@ -160,48 +110,43 @@ export default function MyReportsPage() {
           {!loading && reports.length > 0 && (
             <div className="flex flex-col gap-3">
               {reports.map((item) => {
-                const status = getStatusConfig(item.status);
+                const status   = STATUS_CONFIG[item.status]                    || { label: item.status?.toUpperCase(), bg: "bg-gray-50", text: "text-gray-500", icon: null };
+                const priority = PRIORITY_CONFIG[item.priority?.toLowerCase()] || PRIORITY_CONFIG.low;
                 return (
-                  <Link
-                    key={item.id}
-                    href={`/user/report/${item.id}`}
-                    className="block"
-                  >
+                  <Link key={item.id} href={`/user/report/${item.id}`} className="block">
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4 hover:-translate-y-px hover:shadow-md transition-all cursor-pointer">
-                      
+
                       {/* LEFT */}
                       <div className="min-w-0 flex-1">
-                        <h2 className="text-sm font-semibold text-gray-800 truncate mb-1">
-                          {item.title}
-                        </h2>
+                        <h2 className="text-sm font-semibold text-gray-800 truncate mb-1">{item.title}</h2>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${priority.dot} inline-block flex-shrink-0`} />
+                          <span className={`text-[11px] font-semibold ${priority.color}`}>Prioritas {priority.label}</span>
+                        </div>
                         <p className="text-[11px] text-gray-400">
                           {item.category_name} &bull;{" "}
-                          {new Date(item.created_at).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
+                          {formatTanggal(item.incident_date || item.created_at)}
                         </p>
                       </div>
 
                       {/* RIGHT */}
                       <div className="flex items-center gap-3 flex-shrink-0">
-                        <span
-                          className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-xl ${status.bg} ${status.color}`}
-                        >
-                          {status.icon}
+                        <span className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-2xl ${status.bg} ${status.text}`}>
+                          <StatusIcon name={status.icon} size={12} />
                           {status.label}
                         </span>
                         <div className="w-7 h-7 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
                           <ChevronRight size={14} />
                         </div>
                       </div>
+
                     </div>
                   </Link>
                 );
               })}
             </div>
           )}
+
         </main>
       </div>
     </div>

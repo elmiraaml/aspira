@@ -24,7 +24,7 @@
 
   const STATUS_CONFIG = {
     pending: {
-      label: "Menunggu",
+      label: "Pending",
       dot: "bg-amber-400",
       badge: "bg-amber-50 text-amber-600 border-amber-200",
       bar: "bg-amber-400",
