@@ -41,7 +41,7 @@ export default function EditReport() {
         api.get("/reports/categories"),
       ]);
 
-      const r = resReport.data;
+      const r = resReport.data.report || resReport.data;
 
       if (r.status !== "pending") {
         Alert.alert("Tidak bisa diedit", "Laporan ini sudah diproses dan tidak dapat diedit.");
@@ -101,7 +101,10 @@ export default function EditReport() {
       );
 
       setAlert({ type: "success", message: "Laporan berhasil diperbarui!" });
-      setTimeout(() => router.back(), 1500);
+
+setTimeout(() => {
+  router.replace(`/report/${id}`);
+}, 1500);
     } catch (err) {
       console.log("Update error:", err.response?.data || err.message);
       setAlert({ type: "error", message: err.response?.data?.message || "Gagal memperbarui laporan" });

@@ -124,7 +124,7 @@ export default function CreateReportPage() {
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        setUploadStatus({ type: "error", message: "Ukuran file maksimal 5MB" });
+        setUploadStatus({ type: "error", message: "Ukuran file terlalu besar. Maksimal 5MB." });
         return;
       }
       setFormData((prev) => ({ ...prev, [name]: file }));
@@ -141,6 +141,13 @@ export default function CreateReportPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.bukti_foto) {
+      setUploadStatus({ type: "error", message: "Foto bukti wajib diisi. Silakan upload gambar terlebih dahulu." });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const token = localStorage.getItem("token");
     setSubmitting(true);
 
@@ -181,6 +188,7 @@ export default function CreateReportPage() {
       setTimeout(() => router.push("/user"), 2500);
     } catch (err) {
       setUploadStatus({ type: "error", message: err.message });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSubmitting(false);
     }
@@ -342,9 +350,15 @@ export default function CreateReportPage() {
                       <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                         <ImageIcon size={15} />
                       </div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Foto Bukti</p>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                        Foto Bukti <span className="text-red-400 normal-case tracking-normal font-semibold">*</span>
+                      </p>
                     </div>
-                    <label className="border-2 border-dashed border-gray-100 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition min-h-[90px]">
+                    <label className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition min-h-[90px] ${
+                      !previewUrl && uploadStatus.type === "error" && uploadStatus.message.includes("Foto bukti")
+                        ? "border-red-200 bg-red-50/30"
+                        : "border-gray-100"
+                    }`}>
                       {previewUrl ? (
                         <>
                           <img src={previewUrl} alt="Preview" className="max-h-28 rounded-xl mb-2 object-cover" />

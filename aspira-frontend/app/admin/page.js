@@ -153,36 +153,30 @@ export default function AdminDashboardPage() {
     priority
   ) => {
     const map = {
-      urgent: {
-        bg: "#ffe0e0",
-        color: "#b91c1c",
-        label: "Mendesak",
-      },
-
       emergency: {
-        bg: "#ffe0e0",
-        color: "#b91c1c",
-        label: "Mendesak",
+        bg: "#fde8e8",
+        color: "#c0392b",
+        label: "Emergency",
       },
 
       high: {
-        bg: "#ffe8cc",
-        color: "#c45f00",
-        label: "Tinggi",
+        bg: "#fff7d6",
+        color: "#b07d00",
+        label: "High",
       },
 
       medium: {
-        bg: "#fef9c3",
-        color: "#854d0e",
-        label: "Sedang",
+        bg: "#e8f5ff",
+        color: "#004b8d",
+        label: "Medium",
       },
     };
 
     return (
       map[priority] || {
-        bg: "#dcfce7",
-        color: "#166534",
-        label: "Rendah",
+        bg: "#f1f1e6",
+        color: "#3a5068",
+        label: "Low",
       }
     );
   };
@@ -195,6 +189,7 @@ export default function AdminDashboardPage() {
         gap: 24,
       }}
     >
+      
       {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard
@@ -220,11 +215,8 @@ export default function AdminDashboardPage() {
           bg="bg-amber-50"
           color="text-amber-500"
         />
-      </div>
 
-      {/* MINI CARDS */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <MiniCard
+        <StatCard
           title="Diproses"
           value={diperiksa}
           icon={<LoaderCircle size={20} />}
@@ -232,7 +224,7 @@ export default function AdminDashboardPage() {
           color="text-blue-600"
         />
 
-        <MiniCard
+        <StatCard
           title="Selesai"
           value={selesai}
           icon={<CheckCircle2 size={20} />}
@@ -240,13 +232,13 @@ export default function AdminDashboardPage() {
           color="text-green-600"
         />
 
-       <MiniCard
-  title="Ditolak"
+        <StatCard
+          title="Ditolak"
   value={rejected}
   icon={<AlertTriangle size={20} />}
   bg="bg-red-50"
   color="text-red-500"
-/>
+        />
       </div>
 
       {/* REPORTS */}

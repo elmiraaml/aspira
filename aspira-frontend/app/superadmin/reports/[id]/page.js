@@ -102,10 +102,7 @@ export default function SuperAdminReportDetailPage() {
       diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
       diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },
       tindak_lanjut: { bg: "bg-sky-50",     color: "text-sky-600",     label: "Tindak Lanjut",  icon: Activity },
-      investigasi:   { bg: "bg-blue-50",    color: "text-blue-600",    label: "Investigasi",    icon: Activity },
-      ditindak:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Ditindak",       icon: Activity },
       selesai:       { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai",        icon: CheckCircle },
-      ditolak:       { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
       rejected:      { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
     };
     return map[status] || { bg: "bg-gray-50", color: "text-gray-600", label: status, icon: FileText };

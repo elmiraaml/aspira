@@ -43,16 +43,10 @@ export default function SidebarSuperAdmin() {
 ];
 
   return (
-    <aside className="w-[240px] bg-white border-r border-gray-100 min-h-screen shrink-0">
+    <aside className="w-[240px] bg-white border-r border-gray-100 h-screen sticky top-0 shrink-0">
       <div className="px-6 py-5 border-b border-gray-50">
-        <Link
-          href="/superadmin"
-          className="text-lg font-bold text-gray-900"
-        >
-          Lapor
-          <span className="text-blue-600">
-            In
-          </span>
+        <Link href="/superadmin" className="text-lg font-bold text-blue-600">
+          Aspira
         </Link>
       </div>
 

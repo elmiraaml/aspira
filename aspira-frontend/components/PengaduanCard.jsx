@@ -143,24 +143,25 @@
           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
         "
       >
-        {/* Gambar Lampiran */}
-        {(item.image || item.bukti_foto) && (
-          <div className="w-full h-40 bg-gray-100 overflow-hidden shrink-0">
-            <img 
-              src={item.image || item.bukti_foto} 
-              alt={item.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-          </div>
-        )}
+       {/* Progress bar */}
+<div className="h-[3px] w-full bg-gray-100">
+  <div
+    className={`h-full ${status.bar} transition-all duration-500 rounded-r-full`}
+    style={{ width: `${status.progress}%` }}
+  />
+</div>
 
-        {/* Progress bar */}
-        <div className="h-[3px] w-full bg-gray-100">
-          <div
-            className={`h-full ${status.bar} transition-all duration-500 rounded-r-full`}
-            style={{ width: `${status.progress}%` }}
-          />
-        </div>
+<div className="px-4 pt-4 pb-4 flex flex-col gap-3">
+  {/* Thumbnail kecil kalau ada gambar */}
+  {(item.image || item.bukti_foto) && (
+    <div className="w-full h-28 bg-gray-100 overflow-hidden rounded-xl shrink-0">
+      <img
+        src={item.image || item.bukti_foto}
+        alt={item.title}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+    </div>
+  )}
 
         <div className="px-4 pt-4 pb-4 flex flex-col gap-3">
 
@@ -245,6 +246,7 @@
           </div>
 
         </div>
+        </div> 
       </article>
     );
   }
