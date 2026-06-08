@@ -16,8 +16,7 @@ import {
 
 import { useRouter } from "next/navigation";
 
-import Sidebar from "../../../components/sidebarUser";
-import Navbar from "../../../components/Navbar";
+
 import { api } from "@/src/lib/api";
 
 function SuccessOverlay({ visible, reportTitle }) {
@@ -190,9 +189,9 @@ export default function CreateReportPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#f8fafd]">
-        <Sidebar />
+      
         <div className="flex-1 flex flex-col">
-          <Navbar />
+         
           <div className="flex flex-1 items-center justify-center">
             <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           </div>
@@ -205,13 +204,10 @@ export default function CreateReportPage() {
     <>
       <SuccessOverlay visible={showSuccess} reportTitle={submittedTitle} />
       <div className="flex min-h-screen bg-[#f8fafd]">
-        {/* SIDEBAR */}
-        <Sidebar />
-
+    
         {/* MAIN */}
         <div className="flex flex-col flex-1 min-w-0">
-          {/* NAVBAR */}
-          <Navbar />
+       
 
           {/* CONTENT */}
           <main className="flex-1 px-8 py-7">

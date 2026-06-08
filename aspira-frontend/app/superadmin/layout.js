@@ -50,36 +50,14 @@ export default function SuperAdminLayout({ children }) {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f8fafc",
-        fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-    >
-      {!hideChrome && <SidebarSuperAdmin />}
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-        }}
-      >
-        {!hideChrome && <Navbar />}
-
-        <main
-          style={{
-            flex: 1,
-            padding: 24,
-            overflowY: "auto",
-          }}
-        >
-          {children}
-        </main>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <SidebarSuperAdmin />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <Navbar />
+          <main style={{ flex: 1, padding: 24, overflowY: "auto" }}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

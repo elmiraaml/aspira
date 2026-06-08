@@ -1,7 +1,3 @@
-// ============================================================
-// app/admin/reports/[id]/page.jsx
-// ADMIN DETAIL + STATUS + COMMENTS
-// ============================================================
 "use client";
 
 import { useEffect, useState } from "react";
@@ -253,9 +249,9 @@ export default function AdminReportDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <MetaItem icon={<User size={16} />}     label="Pelapor"          value={report.fullname || "-"} />
             <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
-            <MetaItem icon={<MapPin size={16} />}    label="Lokasi"           value={report.location || "-"} />
+            <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"           value={report.location || "-"} />
             <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
-            <MetaItem icon={<Calendar size={16} />}  label="Dibuat"           value={formatDateTime(report.created_at)} />
+            <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
           </div>
 
           {report.image || report.bukti_foto ? (

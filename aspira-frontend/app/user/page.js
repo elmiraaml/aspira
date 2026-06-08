@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import Sidebar from "../../components/sidebarUser";
-import Navbar from "../../components/Navbar";
+
 import PengaduanCard from "../../components/PengaduanCard";
 import PengaduanModal from "../../components/Pengaduanmodal";
 import { api } from "@/src/lib/api";
@@ -34,7 +33,7 @@ export default function Page() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await api("/reports/my", { method: "GET" });
+      const res = await api("/reports", { method: "GET" });
       if (Array.isArray(res)) setPengaduan(res);
     } catch (err) {
       console.error(err);
@@ -184,17 +183,11 @@ export default function Page() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-      {/* SIDEBAR */}
-      <Sidebar
-        pengaduanList={
-          pengaduan
-        }
-      />
+
 
       {/* MAIN */}
       <div className="flex flex-col flex-1 min-w-0">
-        {/* NAVBAR */}
-        <Navbar />
+
 
         {/* CONTENT */}
         <main className="flex-1 px-8 py-7">

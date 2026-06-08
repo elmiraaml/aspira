@@ -1,4 +1,3 @@
-// app/superadmin/reports/[id]/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,18 +5,19 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
+  RefreshCcw,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
   MapPin,
   Calendar,
   User,
-  Mail,
-  Phone,
   FileText,
   Image as ImageIcon,
-  Clock,
   Activity,
-  AlertTriangle,
   Loader2,
-  CheckCircle,
+  Send,
+  MessageCircle,
 } from "lucide-react";
 
 const API = "http://localhost:5000/api";
@@ -97,18 +97,18 @@ export default function SuperAdminReportDetailPage() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "#fff7d6", color: "#b07d00", label: "Pending", icon: Clock },
-      diperiksa:     { bg: "#e8f5ff", color: "#004b8d", label: "Diperiksa", icon: Activity },
-      diverifikasi:  { bg: "#ede9fe", color: "#6d28d9", label: "Diverifikasi", icon: Activity },
-      tindak_lanjut: { bg: "#e0f2fe", color: "#0369a1", label: "Tindak Lanjut", icon: Activity },
-      diproses:      { bg: "#e8f5ff", color: "#004b8d", label: "Diproses", icon: Activity },
-      investigasi:   { bg: "#e8f5ff", color: "#004b8d", label: "Investigasi", icon: Activity },
-      ditindak:      { bg: "#e8f5ff", color: "#004b8d", label: "Ditindak", icon: Activity },
-      selesai:       { bg: "#e6f9f4", color: "#0a7c5c", label: "Selesai", icon: CheckCircle },
-      ditolak:       { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
-      rejected:      { bg: "#fde8e8", color: "#c0392b", label: "Ditolak", icon: AlertTriangle },
+      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Pending",        icon: Clock },
+      diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",      icon: Activity },
+      diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
+      diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },
+      tindak_lanjut: { bg: "bg-sky-50",     color: "text-sky-600",     label: "Tindak Lanjut",  icon: Activity },
+      investigasi:   { bg: "bg-blue-50",    color: "text-blue-600",    label: "Investigasi",    icon: Activity },
+      ditindak:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Ditindak",       icon: Activity },
+      selesai:       { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai",        icon: CheckCircle },
+      ditolak:       { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
+      rejected:      { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
     };
-    return map[status] || { bg: "#f1f1e6", color: "#3a5068", label: status, icon: FileText };
+    return map[status] || { bg: "bg-gray-50", color: "text-gray-600", label: status, icon: FileText };
   };
 
   const formatDateTime = (date) => {
@@ -131,157 +131,190 @@ export default function SuperAdminReportDetailPage() {
     });
   };
 
-  if (loading) {
-    return (
-      <div style={styles.loadingWrap}>
-        <Loader2 size={42} style={{ color: "#004b8d", animation: "spin 1s linear infinite" }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+    if (loading) {
+      return (
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 size={42} className="text-blue-600 animate-spin" />
+        </div>
+      );
+    }
 
   if (!report) {
     return (
-      <div style={styles.notFound}>
-        <AlertTriangle size={48} color="#c0392b" />
-        <h2 style={styles.notFoundTitle}>Laporan tidak ditemukan</h2>
-        <Link href="/superadmin/reports" style={styles.backLink}>Kembali ke daftar</Link>
+      <div className="text-center p-16 bg-white rounded-3xl border border-blue-50 shadow-sm flex flex-col items-center">
+        <AlertTriangle size={48} className="text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Laporan tidak ditemukan</h2>
+        <Link href="/superadmin/reports" className="text-blue-600 font-semibold hover:underline">
+          Kembali ke Dashboard
+        </Link>
       </div>
     );
   }
 
   const status = getStatusStyle(report.status);
   const priority = getPriorityStyle(report.priority);
+  const StatusIcon = status.icon;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Back Button */}
-      <Link href="/superadmin/reports" style={styles.backBtn}>
-        <ArrowLeft size={18} />
-        Kembali ke Daftar
-      </Link>
+    <div className="flex justify-center">
+      <div className="w-full max-w-4xl flex flex-col gap-6">
 
-      {/* Detail Card */}
-      <div style={styles.card}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
-          <h1 style={{ ...styles.title, flex: 1 }}>{report.title}</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <span style={{ ...styles.badge, background: priority.bg, color: priority.color }}>
-              {priority.label}
-            </span>
-            <span style={{ ...styles.badge, background: status.bg, color: status.color }}>
-              {status.label}
-            </span>
-          </div>
+        {/* Back Button */}
+        <div className="w-full flex justify-start">
+          <Link href="/superadmin" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
+            <ArrowLeft size={18} /> Kembali ke Dashboard
+          </Link>
         </div>
 
-        <div style={styles.descBox}>
-          <FileText size={18} color="#004b8d" />
-          <p style={styles.desc}>{report.description}</p>
-        </div>
-
-        <div style={styles.metaGrid}>
-          <MetaItem icon={<User size={16} />}     label="Pelapor"          value={report.fullname || "-"} />
-          <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
-          <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"  value={report.location || "-"} />
-          <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
-          <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
-        </div>
-
-        {report.image || report.bukti_foto ? (
-          <div style={styles.imageBox}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <ImageIcon size={18} color="#004b8d" />
-              <span style={styles.imageLabel}>Bukti Foto</span>
-            </div>
-            <img src={report.image || report.bukti_foto} alt="Bukti" style={styles.image} />
-          </div>
-        ) : null}
-      </div>
-
-      {/* Comments Card (read-only) */}
-      <div style={styles.card}>
-        <h2 style={styles.sectionTitle}>Komentar & Diskusi</h2>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {comments.length > 0 ? (
-            comments.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  padding: 14,
-                  borderRadius: 14,
-                  background: item.role === "admin" ? "#eef6ff" : "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                }}
+        {/* Detail Card */}
+        <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
+            <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight flex-1">{report.title}</h1>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span
+                style={{ background: priority.bg, color: priority.color }}
+                className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold"
               >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <strong>
-                    {item.full_name} {item.role === "admin" && "(Admin)"}
-                  </strong>
-                  <span style={{ fontSize: 12, color: "#64748b" }}>
-                    {formatDateTime(item.created_at)}
-                  </span>
-                </div>
-                <p style={{ margin: 0 }}>{item.comment}</p>
+                {priority.label}
+              </span>
+              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
+                <StatusIcon size={14} className="mr-2" />
+                {status.label}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/50 p-5 rounded-2xl mb-6 flex gap-3 items-start border border-blue-50">
+            <FileText size={20} className="text-blue-600 mt-0.5" />
+            <p className="m-0 leading-relaxed text-gray-700 flex-1 text-sm">{report.description}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <MetaItem icon={<User size={16} />}     label="Pelapor"          value={report.fullname || "-"} />
+            <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
+            <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"  value={report.location || "-"} />
+            <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
+            <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
+          </div>
+
+          {report.image || report.bukti_foto ? (
+            <div className="mt-4 pt-5 border-t border-gray-50">
+              <div className="flex items-center gap-2 mb-3">
+                <ImageIcon size={18} className="text-blue-600" />
+                <span className="text-sm font-semibold text-gray-900">Bukti Foto</span>
               </div>
-            ))
+              <img
+                src={report.image || report.bukti_foto}
+                alt="Bukti Foto"
+                className="max-w-full max-h-[400px] object-contain rounded-2xl border border-gray-100 bg-gray-50/50 p-2"
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {/* Comments Card (read-only) */}
+        <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+                      <MessageCircle size={20} className="text-blue-600" />
+                      <h2 className="text-lg font-bold text-gray-900">Komentar & Diskusi</h2>
+                    </div>
+
+          {comments.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {comments.map((item) => {
+                const isAdmin = item.role === "admin";
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-4 rounded-2xl border ${
+                      isAdmin
+                        ? "bg-blue-50/50 border-l-4 border-l-blue-600 border-transparent"
+                        : "bg-gray-50/50 border-gray-100"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <User size={16} className={isAdmin ? "text-blue-600" : "text-gray-600"} />
+                        <strong className="text-gray-900">{item.full_name}</strong>
+                        {isAdmin && (
+                          <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Admin</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400 font-medium">{formatDateTime(item.created_at)}</span>
+                    </div>
+                    <p className="m-0 text-sm text-gray-700 leading-relaxed pl-6">{item.comment}</p>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <p style={{ color: "#3a5068" }}>Belum ada komentar.</p>
+            <div className="text-center py-10 bg-gray-50/50 rounded-2xl border border-gray-100 mb-6 flex flex-col items-center gap-3 text-gray-500">
+              <MessageCircle size={28} className="text-gray-300" />
+              <p className="text-sm">Belum ada komentar.</p>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Timeline Card */}
-      <div style={styles.card}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <Activity size={22} color="#004b8d" />
-          <h2 style={styles.sectionTitle}>Timeline Status</h2>
-        </div>
+        {/* Timeline Card */}
+        <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Activity size={20} className="text-blue-600" />
+            <h2 className="text-lg font-bold text-gray-900">Timeline Status</h2>
+          </div>
 
-        {timeline.length > 0 ? (
-          <div style={styles.timelineList}>
-            {timeline.map((log, index) => {
-              const isLast = index === timeline.length - 1;
-              const logStatus = getStatusStyle(log.new_status);
-              return (
-                <div key={log.id} style={{ ...styles.timelineItem, borderBottom: isLast ? "none" : "1px solid #f1f1e6" }}>
-                  <div style={styles.timelineIcon}>
-                    <Clock size={16} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={styles.timelineStatus}>
-                      {log.old_status ? (
-                        <>
-                          <span style={styles.statusOld}>{log.old_status}</span>
-                          <span style={styles.arrowIcon}> → </span>
-                          <span style={{ ...styles.statusNew, background: logStatus.bg, color: logStatus.color }}>
+          {timeline.length > 0 ? (
+            <div className="flex flex-col">
+              {timeline.map((log, index) => {
+                const isLast = index === timeline.length - 1;
+                const logStatus = getStatusStyle(log.new_status);
+                return (
+                  <div key={log.id} className={`flex gap-4 py-4 ${!isLast ? "border-b border-gray-50" : ""}`}>
+                    <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                      <Clock size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="m-0 font-semibold text-sm text-gray-900 flex items-center flex-wrap gap-2">
+                        {log.old_status ? (
+                          <>
+                            <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-600">
+                              {log.old_status}
+                            </span>
+                            <span className="text-gray-400">→</span>
+                            <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
+                              {log.new_status}
+                            </span>
+                          </>
+                        ) : (
+                          <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
                             {log.new_status}
                           </span>
-                        </>
-                      ) : (
-                        <span style={{ ...styles.statusNew, background: logStatus.bg, color: logStatus.color }}>
-                          {log.new_status}
-                        </span>
+                        )}
+                      </p>
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        Oleh: <span className="font-medium text-gray-700">{log.changed_by_name || "System"}</span>
+                        {log.changer_role && ` • Role: ${log.changer_role}`}
+                      </p>
+                      {log.notes && (
+                        <p className="mt-2 text-sm text-gray-600 italic bg-gray-50 px-3 py-2 rounded-xl">
+                          "{log.notes}"
+                        </p>
                       )}
-                    </p>
-                    <p style={styles.timelineMeta}>
-                      Oleh: {log.changed_by_name || "System"}
-                      {log.changer_role && ` • Role: ${log.changer_role}`}
-                    </p>
-                    {log.notes && <p style={styles.timelineNotes}>"{log.notes}"</p>}
-                    <p style={styles.timelineDate}>{formatDateTime(log.created_at)}</p>
+                      <p className="mt-2 text-xs text-gray-400 font-medium">{formatDateTime(log.created_at)}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div style={styles.emptyTimeline}>
-            <Clock size={32} color="#c8d6e5" />
-            <p>Belum ada timeline.</p>
-          </div>
-        )}
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500 flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
+                <Clock size={24} className="text-gray-300" />
+              </div>
+              <p className="text-sm">Belum ada riwayat perubahan status.</p>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );
@@ -289,232 +322,14 @@ export default function SuperAdminReportDetailPage() {
 
 function MetaItem({ icon, label, value }) {
   return (
-    <div style={styles.metaItem}>
-      <div style={styles.metaIcon}>{icon}</div>
+    <div className="flex items-center gap-3 py-2">
+      <div className="w-10 h-10 rounded-xl bg-blue-50/50 flex items-center justify-center text-blue-600 shrink-0">
+        {icon}
+      </div>
       <div>
-        <p style={styles.metaLabel}>{label}</p>
-        <p style={styles.metaValue}>{value}</p>
+        <p className="m-0 text-[11px] text-gray-500 font-medium uppercase tracking-wider">{label}</p>
+        <p className="m-0 text-sm font-semibold text-gray-900 mt-0.5">{value}</p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  loadingWrap: {
-    minHeight: "60vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  notFound: {
-    textAlign: "center",
-    padding: 60,
-    background: "#fff",
-    borderRadius: 20,
-    border: "1px solid rgba(0,75,141,0.08)",
-  },
-  notFoundTitle: {
-    fontSize: 20,
-    fontWeight: 700,
-    color: "#001f3d",
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  backBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    color: "#004b8d",
-    textDecoration: "none",
-    fontWeight: 600,
-    fontSize: 14,
-    width: "fit-content",
-    fontFamily: "'Inter', system-ui, sans-serif",
-    transition: "gap 0.2s",
-  },
-  backLink: {
-    color: "#004b8d",
-    textDecoration: "none",
-    marginTop: 16,
-    display: "inline-block",
-    fontWeight: 600,
-  },
-  card: {
-    background: "#fff",
-    padding: 28,
-    borderRadius: 24,
-    border: "1px solid rgba(0,75,141,0.08)",
-    boxShadow: "0 4px 20px rgba(0,75,141,0.04)",
-  },
-  title: {
-    margin: 0,
-    fontSize: 26,
-    fontWeight: 800,
-    color: "#001f3d",
-    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-  },
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "6px 14px",
-    borderRadius: 40,
-    fontSize: 12,
-    fontWeight: 600,
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  descBox: {
-    background: "#f8f9ff",
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-    marginTop: 20,
-    display: "flex",
-    gap: 12,
-    alignItems: "flex-start",
-    border: "1px solid rgba(0,75,141,0.06)",
-  },
-  desc: {
-    margin: 0,
-    lineHeight: 1.6,
-    color: "#3a5068",
-    flex: 1,
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  metaGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: 8,
-    marginBottom: 24,
-    borderTop: "1px solid #f1f1e6",
-    paddingTop: 20,
-  },
-  metaItem: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    padding: "10px 0",
-  },
-  metaIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    background: "#e8f5ff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#004b8d",
-  },
-  metaLabel: {
-    fontSize: 11,
-    color: "#3a5068",
-    margin: 0,
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  metaValue: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: "#001f3d",
-    margin: 0,
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  imageBox: {
-    marginTop: 8,
-    paddingTop: 16,
-    borderTop: "1px solid #f1f1e6",
-  },
-  imageLabel: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: "#001f3d",
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  image: {
-    maxWidth: "100%",
-    maxHeight: 400,
-    objectFit: "contain",
-    borderRadius: 16,
-    border: "1px solid rgba(0,75,141,0.1)",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 700,
-    color: "#001f3d",
-    margin: 0,
-    marginBottom: 20,
-    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-  },
-  timelineList: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  timelineItem: {
-    display: "flex",
-    gap: 14,
-    padding: "16px 0",
-  },
-  timelineIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
-    background: "#e8f5ff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#004b8d",
-    flexShrink: 0,
-  },
-  timelineStatus: {
-    margin: 0,
-    fontWeight: 600,
-    fontSize: 14,
-    color: "#001f3d",
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  statusOld: {
-    background: "#f1f1e6",
-    padding: "2px 8px",
-    borderRadius: 20,
-    fontSize: 12,
-    fontWeight: 500,
-  },
-  arrowIcon: {
-    color: "#3a5068",
-  },
-  statusNew: {
-    padding: "2px 8px",
-    borderRadius: 20,
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  timelineMeta: {
-    margin: "6px 0 0",
-    fontSize: 12,
-    color: "#3a5068",
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  timelineNotes: {
-    margin: "8px 0 0",
-    fontSize: 13,
-    color: "#3a5068",
-    fontStyle: "italic",
-    background: "#f8f9ff",
-    padding: "8px 12px",
-    borderRadius: 12,
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  timelineDate: {
-    margin: "6px 0 0",
-    fontSize: 11,
-    color: "#8a9bb0",
-    fontFamily: "'Inter', system-ui, sans-serif",
-  },
-  emptyTimeline: {
-    textAlign: "center",
-    padding: 48,
-    color: "#3a5068",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 12,
-  },
-};

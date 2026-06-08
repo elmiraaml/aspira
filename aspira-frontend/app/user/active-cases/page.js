@@ -13,8 +13,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
-import Sidebar from "../../../components/sidebarUser";
-import Navbar from "../../../components/Navbar";
+
 
 export default function MyReportsPage() {
   const [reports, setReports] = useState([]);
@@ -73,13 +72,11 @@ export default function MyReportsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-      {/* SIDEBAR */}
-      <Sidebar />
+   
 
       {/* MAIN */}
       <div className="flex flex-col flex-1 min-w-0">
-        {/* NAVBAR */}
-        <Navbar />
+      
 
         {/* CONTENT */}
         <main className="flex-1 px-8 py-7">
@@ -97,7 +94,7 @@ export default function MyReportsPage() {
           {/* LOADING */}
           {loading && (
             <div className="flex items-center justify-center py-20 gap-3">
-              <div claassName="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
               <span className="text-sm text-gray-400">Memuat data...</span>
             </div>
           )}

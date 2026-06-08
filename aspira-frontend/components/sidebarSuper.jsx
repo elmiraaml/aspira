@@ -12,7 +12,7 @@ import {
   UserCog,
 } from "lucide-react";
 
-export default function SidebarUser() {
+export default function SidebarSuperAdmin() {
   const pathname = usePathname();
 
   const links = [

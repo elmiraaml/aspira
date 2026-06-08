@@ -4,22 +4,24 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  MapPin,
-  Calendar,
-  ShieldAlert,
-  FileText,
-  Clock,
-  ArrowLeft,
-  Loader2,
+  Activity,
   AlertCircle,
   AlertTriangle,
+  ArrowLeft,
+  Calendar,
   CheckCircle,
-  User,
-  MessageSquare,
+  Clock,
+  FileText,
   Image as ImageIcon,
-  Activity,
-  Send,
+  Loader2,
   Lock,
+  MapPin,
+  MessageCircle,
+  MessageSquare,
+  RefreshCcw,
+  Send,
+  ShieldAlert,
+  User,
 } from "lucide-react";
 import { api } from "@/src/lib/api";
 
@@ -154,29 +156,22 @@ export default function UserReportDetailPage() {
 
   const commentClosed = report && ["selesai", "rejected", "ditolak"].includes(report.status);
 
-  if (loading) {
+ if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#f8fafd]">
-        <div className="flex flex-col flex-1 min-w-0">
-          <main className="flex-1 px-8 py-7 flex items-center justify-center min-h-[60vh]">
-            <Loader2 size={42} className="text-blue-600 animate-spin" />
-          </main>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 size={42} className="text-blue-600 animate-spin" />
       </div>
     );
   }
 
   if (!report) {
     return (
-      <div className="flex min-h-screen bg-[#f8fafd]">
-            <div className="text-center p-16 bg-white rounded-3xl border border-blue-50 shadow-sm flex flex-col items-center">
-              <AlertCircle size={48} className="text-red-500 mb-4" />
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Laporan tidak ditemukan</h2>
-              <p className="text-gray-500 mb-6">Akses ditolak atau laporan tidak tersedia.</p>
-              <Link href="/user" className="text-blue-600 font-semibold hover:underline">
-                Kembali ke Dashboard
-              </Link>
-            </div>
+      <div className="text-center p-16 bg-white rounded-3xl border border-blue-50 shadow-sm flex flex-col items-center">
+        <AlertTriangle size={48} className="text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Laporan tidak ditemukan</h2>
+        <Link href="/user" className="text-blue-600 font-semibold hover:underline">
+          Kembali ke Dashboard
+        </Link>
       </div>
     );
   }
@@ -186,33 +181,22 @@ export default function UserReportDetailPage() {
   const StatusIcon = status.icon;
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafd]">
-      <div className="flex flex-col flex-1 min-w-0">
-<main className="flex-1 px-8 py-7 flex justify-center">
+    <div className="flex justify-center">
+      <div className="w-full max-w-4xl flex flex-col gap-6">
 
-  <div className="w-full max-w-4xl flex flex-col gap-6">
-
-            {/* Back Button */} 
-            <div className="w-full flex justify-start"> 
-              <Link href="/user" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all" > 
-              <ArrowLeft size={18} /> Kembali ke Dashboard 
-              </Link> 
-              </div>
+       {/* Back Button */}
+        <div className="w-full flex justify-start">
+          <Link href="/superadmin" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
+            <ArrowLeft size={18} /> Kembali ke Dashboard
+          </Link>
+        </div>
 
             {/* Detail Card */}
-            <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
-              <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
-  <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight flex-1">
-    {report.title}
-  </h1>
-  <div className="flex items-center gap-2 flex-shrink-0">
-    <span
-      style={{ background: priority.bg, color: priority.color }}
-      className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold"
-    >
-      {priority.label}
-    </span>
-    {report.status === "pending" && (
+        <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
+            <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight flex-1">{report.title}</h1>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {report.status === "pending" && (
       <Link
         href={`/user/report/edit/${id}`}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition"
@@ -223,12 +207,18 @@ export default function UserReportDetailPage() {
         Edit
       </Link>
     )}
-    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
-      <StatusIcon size={14} className="mr-2" />
-      {status.label}
-    </span>
-  </div>
-  </div>
+              <span
+                style={{ background: priority.bg, color: priority.color }}
+                className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold"
+              >
+                {priority.label}
+              </span>
+              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
+                <StatusIcon size={14} className="mr-2" />
+                {status.label}
+              </span>
+            </div>
+          </div>
 
               <div className="bg-blue-50/50 p-5 rounded-2xl mb-6 flex gap-3 items-start border border-blue-50">
                 <FileText size={20} className="text-blue-600 mt-0.5" />
@@ -238,19 +228,10 @@ export default function UserReportDetailPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <MetaItem
-    icon={<AlertCircle size={16} />}
-    label="Tingkat Prioritas"
-    value={
-      report.priority === "high" ? "Tinggi (High)" :
-      report.priority === "medium" ? "Sedang (Medium)" :
-      report.priority === "low" ? "Rendah (Low)" : "-"
-    }
-  />
-                <MetaItem icon={<ShieldAlert size={16} />} label="Kategori" value={report.category_name || "-"} />
-                <MetaItem icon={<MapPin size={16} />} label="Lokasi Kejadian" value={report.location || "-"} />
-                <MetaItem icon={<Calendar size={16} />} label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
-                <MetaItem icon={<Clock size={16} />} label="Dibuat Pada" value={formatDateTime(report.created_at)} />
+                <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
+                <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"  value={report.location || "-"} />
+                <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
+                <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
               </div>
 
               {report.image || report.bukti_foto ? (
@@ -397,9 +378,7 @@ export default function UserReportDetailPage() {
               )}
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
   );
 }
 

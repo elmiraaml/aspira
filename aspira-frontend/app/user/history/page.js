@@ -1,4 +1,3 @@
-// app/users/history/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,8 +14,6 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
-import Sidebar from "../../../components/sidebarUser";
-import Navbar from "../../../components/Navbar";
 
 export default function MyReportsPage() {
   const [reports, setReports] = useState([]);
@@ -104,13 +101,11 @@ export default function MyReportsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-      {/* SIDEBAR */}
-      <Sidebar />
+     
 
       {/* MAIN */}
       <div className="flex flex-col flex-1 min-w-0">
-        {/* NAVBAR */}
-        <Navbar />
+      
 
         {/* CONTENT */}
         <main className="flex-1 px-8 py-7">
