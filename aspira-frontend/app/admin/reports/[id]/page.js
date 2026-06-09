@@ -1,53 +1,58 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
+  Activity,
+  AlertTriangle,
   ArrowLeft,
-  RefreshCcw,
+  Calendar,
   CheckCircle,
   Clock,
-  AlertTriangle,
-  MapPin,
-  Calendar,
-  User,
   FileText,
   Image as ImageIcon,
-  Activity,
   Loader2,
-  Send,
+  MapPin,
   MessageCircle,
+  RefreshCcw,
+  Send,
+  User,
 } from "lucide-react";
 import { api } from "@/src/lib/api";
 
+const LocationViewMap = dynamic(() => import("@/components/LocationViewMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[200px] items-center justify-center rounded-2xl bg-gray-100 text-sm text-gray-400">
+      Memuat peta...
+    </div>
+  ),
+});
+
 export default function AdminReportDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
 
   const [report, setReport] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [comments, setComments] = useState([]);
-
   const [newStatus, setNewStatus] = useState("");
   const [notes, setNotes] = useState("");
   const [newComment, setNewComment] = useState("");
-
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [sendingComment, setSendingComment] = useState(false);
+  const [mapCoords, setMapCoords] = useState(null);
 
-  // ======================================================
-  // FETCH REPORT DETAIL
-  // ======================================================
   const fetchDetail = async () => {
     try {
       const data = await api(`/reports/${id}`);
-      if (data && data.report) {
-        setReport(data.report || data);
+      if (data?.report) {
+        setReport(data.report);
         setTimeline(data.timeline || []);
         setNewStatus(data.report.status);
-      } else if (data && data.id) {
+      } else if (data?.id) {
         setReport(data);
         setTimeline([]);
         setNewStatus(data.status);
@@ -57,24 +62,18 @@ export default function AdminReportDetailPage() {
     }
   };
 
-  // ======================================================
-  // FETCH COMMENTS
-  // ======================================================
   const fetchComments = async () => {
     try {
       const data = await api(`/comments/report/${id}`);
       setComments(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Fetch Comments Error:", error);
+    } catch (err) {
+      console.error("Fetch Comments Error:", err);
     }
   };
 
-  // ======================================================
-  // INITIAL LOAD
-  // ======================================================
   useEffect(() => {
+    if (!id) return;
     const init = async () => {
-      if (!id) return;
       setLoading(true);
       await Promise.all([fetchDetail(), fetchComments()]);
       setLoading(false);
@@ -82,9 +81,28 @@ export default function AdminReportDetailPage() {
     init();
   }, [id]);
 
-  // ======================================================
-  // UPDATE STATUS
-  // ======================================================
+  // Geocode lokasi → koordinat peta
+  useEffect(() => {
+    if (!report?.location) return;
+    const loc = report.location;
+    const coordMatch = loc.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/);
+    if (coordMatch) {
+      setMapCoords([parseFloat(coordMatch[1]), parseFloat(coordMatch[2])]);
+      return;
+    }
+    const geocode = async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc)}&format=json&limit=1`,
+          { headers: { "Accept-Language": "id" } }
+        );
+        const data = await res.json();
+        if (data[0]) setMapCoords([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+      } catch {}
+    };
+    geocode();
+  }, [report?.location]);
+
   const updateStatus = async () => {
     try {
       setUpdating(true);
@@ -95,8 +113,7 @@ export default function AdminReportDetailPage() {
           notes: notes || `Status diubah menjadi ${newStatus}`,
         }),
       });
-      if (res.message && res.message.includes("berhasil")) {
-        alert("Status berhasil diperbarui");
+      if (res.message?.includes("berhasil")) {
         setNotes("");
         await fetchDetail();
       } else {
@@ -110,9 +127,6 @@ export default function AdminReportDetailPage() {
     }
   };
 
-  // ======================================================
-  // ADD COMMENT
-  // ======================================================
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
@@ -121,43 +135,40 @@ export default function AdminReportDetailPage() {
         method: "POST",
         body: JSON.stringify({ comment: newComment }),
       });
-      if (res.message && res.message.includes("berhasil")) {
+      if (res.message?.includes("berhasil")) {
         setNewComment("");
         fetchComments();
       } else {
         alert(res.message || "Gagal mengirim komentar");
       }
-    } catch (error) {
-      console.error("Add Comment Error:", error);
+    } catch (err) {
+      console.error(err);
       alert("Terjadi kesalahan");
     } finally {
       setSendingComment(false);
     }
   };
 
-  // ======================================================
-  // HELPERS
-  // ======================================================
   const getPriorityStyle = (priority) => {
     const map = {
       urgent:    { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
       emergency: { bg: "#ffe0e0", color: "#b91c1c", label: "Mendesak" },
-      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi" },
-      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang" },
-      low:       { bg: "#dcfce7", color: "#166534", label: "Rendah" },
+      high:      { bg: "#ffe8cc", color: "#c45f00", label: "Tinggi"   },
+      medium:    { bg: "#fef9c3", color: "#854d0e", label: "Sedang"   },
+      low:       { bg: "#dcfce7", color: "#166534", label: "Rendah"   },
     };
     return map[priority?.toLowerCase()] || map.low;
   };
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Menunggu",        icon: Clock },
-      diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",      icon: Activity },
-      diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",       icon: Activity },
-      diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",   icon: Activity },
-      tindak_lanjut: { bg: "bg-sky-50",     color: "text-sky-600",     label: "Tindak Lanjut",  icon: Activity },
-      selesai:       { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai",        icon: CheckCircle },
-      rejected:      { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",        icon: AlertTriangle },
+      pending:       { bg: "bg-amber-50",   color: "text-amber-600",   label: "Menunggu",      icon: Clock         },
+      diperiksa:     { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diperiksa",     icon: Activity      },
+      diproses:      { bg: "bg-blue-50",    color: "text-blue-600",    label: "Diproses",      icon: Activity      },
+      diverifikasi:  { bg: "bg-purple-50",  color: "text-purple-600",  label: "Diverifikasi",  icon: Activity      },
+      tindak_lanjut: { bg: "bg-sky-50",     color: "text-sky-600",     label: "Tindak Lanjut", icon: Activity      },
+      selesai:       { bg: "bg-emerald-50", color: "text-emerald-600", label: "Selesai",       icon: CheckCircle   },
+      rejected:      { bg: "bg-red-50",     color: "text-red-600",     label: "Ditolak",       icon: AlertTriangle },
     };
     return map[status] || { bg: "bg-gray-50", color: "text-gray-600", label: status, icon: FileText };
   };
@@ -165,26 +176,17 @@ export default function AdminReportDetailPage() {
   const formatDateTime = (date) => {
     if (!date) return "-";
     return new Date(date).toLocaleString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   };
 
   const formatDate = (date) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+      day: "numeric", month: "long", year: "numeric",
     });
   };
 
-  // ======================================================
-  // LOADING
-  // ======================================================
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -193,17 +195,12 @@ export default function AdminReportDetailPage() {
     );
   }
 
-  // ======================================================
-  // NOT FOUND
-  // ======================================================
   if (!report) {
     return (
       <div className="text-center p-16 bg-white rounded-3xl border border-blue-50 shadow-sm flex flex-col items-center">
         <AlertTriangle size={48} className="text-red-500 mb-4" />
         <h2 className="text-xl font-bold text-gray-900 mb-2">Laporan tidak ditemukan</h2>
-        <Link href="/admin/reports" className="text-blue-600 font-semibold hover:underline">
-          Kembali ke daftar
-        </Link>
+        <Link href="/admin/reports" className="text-blue-600 font-semibold hover:underline">Kembali ke daftar</Link>
       </div>
     );
   }
@@ -216,22 +213,18 @@ export default function AdminReportDetailPage() {
     <div className="flex justify-center">
       <div className="w-full max-w-4xl flex flex-col gap-6">
 
-{/* Back Button */} 
-            <div className="w-full flex justify-start"> 
-              <Link href="/admin" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all" > 
-              <ArrowLeft size={18} /> Kembali ke Dashboard 
-              </Link> 
-              </div>
+        <div className="w-full flex justify-start">
+          <Link href="/admin" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
+            <ArrowLeft size={18} /> Kembali ke Dashboard
+          </Link>
+        </div>
 
-        {/* DETAIL */}
+        {/* Detail */}
         <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
           <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
             <h1 className="m-0 text-2xl font-bold text-gray-900 leading-tight flex-1">{report.title}</h1>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span
-                style={{ background: priority.bg, color: priority.color }}
-                className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold"
-              >
+              <span style={{ background: priority.bg, color: priority.color }} className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold">
                 {priority.label}
               </span>
               <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
@@ -249,13 +242,34 @@ export default function AdminReportDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <MetaItem icon={<User size={16} />}     label="Pelapor"          value={report.fullname || "-"} />
             <MetaItem icon={<FileText size={16} />}  label="Kategori"         value={report.category_name || "-"} />
-            <MetaItem icon={<MapPin size={16} />}    label="Lokasi Kejadian"           value={report.location || "-"} />
             <MetaItem icon={<Calendar size={16} />}  label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
             <MetaItem icon={<Clock size={16} />}     label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
           </div>
 
-          {report.image || report.bukti_foto ? (
-            <div className="mt-4 pt-5 border-t border-gray-50">
+          {/* Lokasi + Peta */}
+          {report.location && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 py-2 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50/50 flex items-center justify-center text-blue-600 shrink-0">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <p className="m-0 text-[11px] text-gray-500 font-medium uppercase tracking-wider">Lokasi Kejadian</p>
+                  <p className="m-0 text-sm font-semibold text-gray-900 mt-0.5">{report.location}</p>
+                </div>
+              </div>
+              {mapCoords ? (
+                <LocationViewMap position={mapCoords} />
+              ) : (
+                <div className="flex h-[200px] items-center justify-center rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-400 gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Memuat lokasi di peta...
+                </div>
+              )}
+            </div>
+          )}
+
+          {(report.image || report.bukti_foto) && (
+            <div className="pt-5 border-t border-gray-50">
               <div className="flex items-center gap-2 mb-3">
                 <ImageIcon size={18} className="text-blue-600" />
                 <span className="text-sm font-semibold text-gray-900">Bukti Foto</span>
@@ -266,13 +280,12 @@ export default function AdminReportDetailPage() {
                 className="max-w-full max-h-[400px] object-contain rounded-2xl border border-gray-100 bg-gray-50/50 p-2"
               />
             </div>
-          ) : null}
+          )}
         </div>
 
-        {/* UPDATE STATUS */}
+        {/* Update Status */}
         <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
           <h2 className="text-lg font-bold text-gray-900 mb-5">Update Status</h2>
-
           <select
             value={newStatus}
             onChange={(e) => setNewStatus(e.target.value)}
@@ -286,7 +299,6 @@ export default function AdminReportDetailPage() {
             <option value="selesai">Selesai</option>
             <option value="rejected">Ditolak</option>
           </select>
-
           <textarea
             placeholder="Catatan admin (opsional)"
             value={notes}
@@ -294,48 +306,33 @@ export default function AdminReportDetailPage() {
             rows={3}
             className="w-full px-4 py-3 rounded-2xl border border-gray-200 outline-none resize-y text-sm text-gray-700 mb-4 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
-
           <button
             onClick={updateStatus}
             disabled={updating}
             className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updating ? (
-              <RefreshCcw size={16} className="animate-spin" />
-            ) : (
-              <CheckCircle size={16} />
-            )}
+            {updating ? <RefreshCcw size={16} className="animate-spin" /> : <CheckCircle size={16} />}
             {updating ? "Memproses..." : "Update Status"}
           </button>
         </div>
 
-        {/* COMMENTS */}
+        {/* Komentar */}
         <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <MessageCircle size={20} className="text-blue-600" />
             <h2 className="text-lg font-bold text-gray-900">Komentar & Diskusi</h2>
           </div>
-
           {comments.length > 0 ? (
             <div className="flex flex-col gap-3 mb-6">
               {comments.map((item) => {
                 const isAdmin = item.role === "admin";
                 return (
-                  <div
-                    key={item.id}
-                    className={`p-4 rounded-2xl border ${
-                      isAdmin
-                        ? "bg-blue-50/50 border-l-4 border-l-blue-600 border-transparent"
-                        : "bg-gray-50/50 border-gray-100"
-                    }`}
-                  >
+                  <div key={item.id} className={`p-4 rounded-2xl border ${isAdmin ? "bg-blue-50/50 border-l-4 border-l-blue-600 border-transparent" : "bg-gray-50/50 border-gray-100"}`}>
                     <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
                       <div className="flex items-center gap-2 text-sm">
                         <User size={16} className={isAdmin ? "text-blue-600" : "text-gray-600"} />
                         <strong className="text-gray-900">{item.full_name}</strong>
-                        {isAdmin && (
-                          <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Admin</span>
-                        )}
+                        {isAdmin && <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Admin</span>}
                       </div>
                       <span className="text-xs text-gray-400 font-medium">{formatDateTime(item.created_at)}</span>
                     </div>
@@ -350,7 +347,6 @@ export default function AdminReportDetailPage() {
               <p className="text-sm">Belum ada komentar.</p>
             </div>
           )}
-
           <div className="flex flex-col gap-3">
             <textarea
               value={newComment}
@@ -364,23 +360,18 @@ export default function AdminReportDetailPage() {
               disabled={sendingComment}
               className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors w-fit disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {sendingComment ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Send size={16} />
-              )}
+              {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               {sendingComment ? "Mengirim..." : "Kirim Komentar"}
             </button>
           </div>
         </div>
 
-        {/* TIMELINE */}
+        {/* Timeline */}
         <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <Activity size={20} className="text-blue-600" />
             <h2 className="text-lg font-bold text-gray-900">Timeline Status</h2>
           </div>
-
           {timeline.length > 0 ? (
             <div className="flex flex-col">
               {timeline.map((log, index) => {
@@ -395,27 +386,19 @@ export default function AdminReportDetailPage() {
                       <p className="m-0 font-semibold text-sm text-gray-900 flex items-center flex-wrap gap-2">
                         {log.old_status ? (
                           <>
-                            <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-600">
-                              {log.old_status}
-                            </span>
+                            <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-600">{log.old_status}</span>
                             <span className="text-gray-400">→</span>
-                            <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
-                              {log.new_status}
-                            </span>
+                            <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>{log.new_status}</span>
                           </>
                         ) : (
-                          <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
-                            {log.new_status}
-                          </span>
+                          <span className={`${logStatus.bg} ${logStatus.color} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>{log.new_status}</span>
                         )}
                       </p>
                       <p className="mt-1.5 text-xs text-gray-500">
                         Oleh: <span className="font-medium text-gray-700">{log.changed_by_name || "System"}</span>
                       </p>
                       {log.notes && (
-                        <p className="mt-2 text-sm text-gray-600 italic bg-gray-50 px-3 py-2 rounded-xl">
-                          "{log.notes}"
-                        </p>
+                        <p className="mt-2 text-sm text-gray-600 italic bg-gray-50 px-3 py-2 rounded-xl">"{log.notes}"</p>
                       )}
                       <p className="mt-2 text-xs text-gray-400 font-medium">{formatDateTime(log.created_at)}</p>
                     </div>

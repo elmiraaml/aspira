@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Upload,
   Send,
@@ -13,11 +14,20 @@ import {
   FileText,
   Image as ImageIcon,
 } from "lucide-react";
-
 import { useRouter } from "next/navigation";
-
-
 import { api } from "@/src/lib/api";
+
+const LocationPickerMap = dynamic(
+  () => import("@/components/LocationPickerMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[300px] items-center justify-center rounded-xl bg-gray-100 text-sm text-gray-400">
+        Memuat peta...
+      </div>
+    ),
+  }
+);
 
 function SuccessOverlay({ visible, reportTitle }) {
   const [progress, setProgress] = useState(0);
@@ -27,8 +37,11 @@ function SuccessOverlay({ visible, reportTitle }) {
       setProgress(0);
       const interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 100) { clearInterval(interval); return 100; }
-          return prev + (100 / (2200 / 50));
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 100 / (2200 / 50);
         });
       }, 50);
       return () => clearInterval(interval);
@@ -38,17 +51,22 @@ function SuccessOverlay({ visible, reportTitle }) {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/55 flex items-center justify-center" style={{ zIndex: 99999 }}>
       <div className="bg-white rounded-3xl p-8 flex flex-col items-center w-[300px] shadow-2xl">
         <div className="w-22 h-22 rounded-full bg-green-100 flex items-center justify-center mb-5 p-5">
           <CheckCircle className="w-12 h-12 text-green-600" />
         </div>
-        <p className="text-xl font-bold text-gray-900 mb-2 text-center">Laporan Terkirim!</p>
+        <p className="text-xl font-bold text-gray-900 mb-2 text-center">
+          Laporan Terkirim!
+        </p>
         <p className="text-sm text-gray-500 text-center leading-relaxed mb-1">
-          Laporan <span className="font-semibold text-gray-700">"{reportTitle}"</span> berhasil dikirim.
+          Laporan{" "}
+          <span className="font-semibold text-gray-700">"{reportTitle}"</span>{" "}
+          berhasil dikirim.
         </p>
         <p className="text-xs text-gray-400 text-center leading-relaxed mb-6">
-          Tim kami akan segera meninjau pengaduan Anda dan memberikan tindak lanjut secepatnya.
+          Tim kami akan segera meninjau pengaduan Anda dan memberikan tindak
+          lanjut secepatnya.
         </p>
         <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
@@ -70,8 +88,8 @@ export default function CreateReportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedTitle, setSubmittedTitle] = useState("");
-
   const [uploadStatus, setUploadStatus] = useState({ type: "", message: "" });
+  const [mapPosition, setMapPosition] = useState([-6.2, 106.8]);
 
   const [formData, setFormData] = useState({
     category_id: "",
@@ -114,6 +132,23 @@ export default function CreateReportPage() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMapPosition([pos.coords.latitude, pos.coords.longitude]);
+      },
+      () => {}
+    );
+  }, []);
+
+  const handleLocationSelect = (lat, lng, name) => {
+    setMapPosition([lat, lng]);
+    setFormData((prev) => ({
+      ...prev,
+      incident_location: name,
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -124,7 +159,10 @@ export default function CreateReportPage() {
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        setUploadStatus({ type: "error", message: "Ukuran file terlalu besar. Maksimal 5MB." });
+        setUploadStatus({
+          type: "error",
+          message: "Ukuran file terlalu besar. Maksimal 5MB.",
+        });
         return;
       }
       setFormData((prev) => ({ ...prev, [name]: file }));
@@ -142,8 +180,20 @@ export default function CreateReportPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.incident_location) {
+      setUploadStatus({
+        type: "error",
+        message: "Lokasi kejadian wajib diisi. Cari alamat, gunakan GPS, atau klik peta.",
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     if (!formData.bukti_foto) {
-      setUploadStatus({ type: "error", message: "Foto bukti wajib diisi. Silakan upload gambar terlebih dahulu." });
+      setUploadStatus({
+        type: "error",
+        message: "Foto bukti wajib diisi. Silakan upload gambar terlebih dahulu.",
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -152,19 +202,19 @@ export default function CreateReportPage() {
     setSubmitting(true);
 
     try {
-      let imageUrl = null;
-      if (formData.bukti_foto) {
-        const uploadBody = new FormData();
-        uploadBody.append("image", formData.bukti_foto);
-        const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/reports/upload`, {
+      const uploadBody = new FormData();
+      uploadBody.append("image", formData.bukti_foto);
+      const uploadRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/reports/upload`,
+        {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: uploadBody,
-        });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.message || "Gagal upload gambar");
-        imageUrl = uploadData.image_url;
-      }
+        }
+      );
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok)
+        throw new Error(uploadData.message || "Gagal upload gambar");
 
       const res = await api("/reports", {
         method: "POST",
@@ -174,7 +224,7 @@ export default function CreateReportPage() {
           description: formData.description,
           location: formData.incident_location,
           incident_date: formData.incident_date,
-          image: imageUrl,
+          image: uploadData.image_url,
           priority: formData.priority,
         }),
       });
@@ -196,14 +246,8 @@ export default function CreateReportPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#f8fafd]">
-      
-        <div className="flex-1 flex flex-col">
-         
-          <div className="flex flex-1 items-center justify-center">
-            <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-          </div>
-        </div>
+      <div className="flex min-h-screen bg-[#f8fafd] items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -212,15 +256,9 @@ export default function CreateReportPage() {
     <>
       <SuccessOverlay visible={showSuccess} reportTitle={submittedTitle} />
       <div className="flex min-h-screen bg-[#f8fafd]">
-    
-        {/* MAIN */}
         <div className="flex flex-col flex-1 min-w-0">
-       
-
-          {/* CONTENT */}
           <main className="flex-1 px-8 py-7">
 
-            {/* PAGE HEADER */}
             <div className="mb-6">
               <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
                 Formulir Baru
@@ -230,161 +268,224 @@ export default function CreateReportPage() {
               </h3>
             </div>
 
-            {/* ALERT */}
             {uploadStatus.message && (
-              <div className={`mb-5 rounded-2xl border px-5 py-4 flex items-center gap-3 ${
-                uploadStatus.type === "success"
-                  ? "bg-green-50 border-green-100 text-green-700"
-                  : "bg-red-50 border-red-100 text-red-700"
-              }`}>
-                {uploadStatus.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                <span className="text-sm font-medium">{uploadStatus.message}</span>
+              <div
+                className={`mb-5 rounded-2xl border px-5 py-4 flex items-center gap-3 ${
+                  uploadStatus.type === "success"
+                    ? "bg-green-50 border-green-100 text-green-700"
+                    : "bg-red-50 border-red-100 text-red-700"
+                }`}
+              >
+                {uploadStatus.type === "success" ? (
+                  <CheckCircle size={16} />
+                ) : (
+                  <AlertCircle size={16} />
+                )}
+                <span className="text-sm font-medium">
+                  {uploadStatus.message}
+                </span>
               </div>
             )}
 
-            {/* FORM */}
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
 
-                {/* JUDUL */}
+                {/* Judul */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                       <FileText size={15} />
                     </div>
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Judul Laporan</p>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                      Judul Laporan
+                    </p>
                   </div>
                   <input
-                    type="text" name="title" placeholder="Masukkan judul laporan..."
-                    value={formData.title} onChange={handleChange} required
+                    type="text"
+                    name="title"
+                    placeholder="Masukkan judul laporan..."
+                    value={formData.title}
+                    onChange={handleChange}
+                    required
                     className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
                   />
                 </div>
 
-                {/* DESKRIPSI */}
+                {/* Deskripsi */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
                       <FileText size={15} />
                     </div>
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Deskripsi</p>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                      Deskripsi
+                    </p>
                   </div>
                   <textarea
-                    name="description" rows={4} placeholder="Jelaskan kejadian secara lengkap dan jelas..."
-                    value={formData.description} onChange={handleChange} required
+                    name="description"
+                    rows={4}
+                    placeholder="Jelaskan kejadian secara lengkap dan jelas..."
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
                     className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition resize-none"
                   />
                 </div>
 
-                {/* KATEGORI + LOKASI */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                        <Tag size={15} />
-                      </div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Kategori</p>
+                {/* Kategori */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Tag size={15} />
                     </div>
-                    <select
-                      name="category_id" value={formData.category_id} onChange={handleChange} required
-                      className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
-                    >
-                      <option value="">Pilih kategori</option>
-                      {categoryList.map((cat) => (
-                        <option key={cat.id} value={cat.id}>{cat.category_name}</option>
-                      ))}
-                    </select>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                      Kategori
+                    </p>
                   </div>
-
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-                        <MapPin size={15} />
-                      </div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Lokasi Kejadian</p>
-                    </div>
-                    <input
-                      type="text" name="incident_location" placeholder="Contoh: Jakarta Timur"
-                      value={formData.incident_location} onChange={handleChange} required
-                      className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
-                    />
-                  </div>
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
+                  >
+                    <option value="">Pilih kategori</option>
+                    {categoryList.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.category_name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* TANGGAL + FOTO */}
+                {/* Lokasi Kejadian */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+                      <MapPin size={15} />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                      Lokasi Kejadian
+                    </p>
+                  </div>
+                  <LocationPickerMap
+                    position={mapPosition}
+                    onLocationSelect={handleLocationSelect}
+                  />
+                </div>
+
+                {/* Tanggal & Prioritas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                         <Calendar size={15} />
                       </div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Tanggal Kejadian</p>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                        Tanggal Kejadian
+                      </p>
                     </div>
                     <input
-                      type="date" name="incident_date" value={formData.incident_date} onChange={handleChange} required
+                      type="date"
+                      name="incident_date"
+                      value={formData.incident_date}
+                      onChange={handleChange}
+                      required
                       className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
                     />
                   </div>
-                  
+
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
                         <AlertCircle size={15} />
                       </div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">Tingkat Prioritas</p>
-                    </div>
-                    <select
-  name="priority" value={formData.priority} onChange={handleChange} required
-  className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
->
-  <option value="low">Rendah</option>
-  <option value="medium">Sedang</option>
-  <option value="high">Tinggi</option>
-  <option value="urgent">Mendesak</option>
-</select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
-                        <ImageIcon size={15} />
-                      </div>
                       <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
-                        Foto Bukti <span className="text-red-400 normal-case tracking-normal font-semibold">*</span>
+                        Tingkat Prioritas
                       </p>
                     </div>
-                    <label className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition min-h-[90px] ${
-                      !previewUrl && uploadStatus.type === "error" && uploadStatus.message.includes("Foto bukti")
-                        ? "border-red-200 bg-red-50/30"
-                        : "border-gray-100"
-                    }`}>
-                      {previewUrl ? (
-                        <>
-                          <img src={previewUrl} alt="Preview" className="max-h-28 rounded-xl mb-2 object-cover" />
-                          <p className="text-xs text-gray-400 truncate max-w-full px-2">{previewName}</p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-400 mb-2">
-                            <Upload size={16} />
-                          </div>
-                          <p className="text-sm font-medium text-gray-600">Upload Gambar</p>
-                          <p className="text-xs text-gray-400 mt-0.5">JPG, PNG maks. 5MB</p>
-                        </>
-                      )}
-                      <input type="file" name="bukti_foto" accept="image/*" onChange={handleChange} hidden />
-                    </label>
+                    <select
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-400 focus:bg-white transition"
+                    >
+                      <option value="low">Rendah</option>
+                      <option value="medium">Sedang</option>
+                      <option value="high">Tinggi</option>
+                      <option value="urgent">Mendesak</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* SUBMIT */}
+                {/* Foto Bukti */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                      <ImageIcon size={15} />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium">
+                      Foto Bukti{" "}
+                      <span className="text-red-400 normal-case tracking-normal font-semibold">
+                        *
+                      </span>
+                    </p>
+                  </div>
+                  <label
+                    className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition min-h-[90px] ${
+                      !previewUrl &&
+                      uploadStatus.type === "error" &&
+                      uploadStatus.message.includes("Foto bukti")
+                        ? "border-red-200 bg-red-50/30"
+                        : "border-gray-100"
+                    }`}
+                  >
+                    {previewUrl ? (
+                      <>
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="max-h-28 rounded-xl mb-2 object-cover"
+                        />
+                        <p className="text-xs text-gray-400 truncate max-w-full px-2">
+                          {previewName}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-400 mb-2">
+                          <Upload size={16} />
+                        </div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Upload Gambar
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          JPG, PNG maks. 5MB
+                        </p>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      name="bukti_foto"
+                      accept="image/*"
+                      onChange={handleChange}
+                      hidden
+                    />
+                  </label>
+                </div>
+
+                {/* Submit */}
                 <button
-                  type="submit" disabled={submitting}
+                  type="submit"
+                  disabled={submitting}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white px-5 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 hover:-translate-y-px transition-all shadow-md shadow-blue-200 disabled:opacity-70 disabled:translate-y-0"
                 >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send size={15} />}
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send size={15} />
+                  )}
                   {submitting ? "Mengirim..." : "Kirim Laporan"}
                 </button>
 

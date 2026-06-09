@@ -1,16 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { WebView } from "react-native-webview";
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   Image, ActivityIndicator, Platform, Animated
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
 import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+
+const isNative = Platform.OS === "ios" || Platform.OS === "android";
 
 function SuccessOverlay({ visible, reportTitle }) {
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -101,6 +105,13 @@ const EMPTY_FORM = {
   image: null,
 };
 
+const DEFAULT_REGION = {
+  latitude: -6.2,
+  longitude: 106.8,
+  latitudeDelta: 0.01,
+  longitudeDelta: 0.01,
+};
+
 export default function Create() {
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
@@ -111,7 +122,38 @@ export default function Create() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  // map states
+  const [mapRegion, setMapRegion] = useState(DEFAULT_REGION);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [loadingGps, setLoadingGps] = useState(false);
+  const debounceRef = useRef(null);
+  const iframeRef = useRef(null);
+
   useEffect(() => { fetchCategories(); }, []);
+
+  // listener postMessage dari iframe (web)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const handleMessage = async (event) => {
+      try {
+        const { lat, lng } = JSON.parse(event.data);
+        if (typeof lat !== "number" || typeof lng !== "number") return;
+        setMapRegion((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+          { headers: { "Accept-Language": "id" } }
+        );
+        const data = await res.json();
+        const name = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        setSearchQuery(name);
+        updateField("location", name);
+      } catch {}
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -128,6 +170,101 @@ export default function Create() {
   const updateField = (key, value) => setFormData((prev) => ({ ...prev, [key]: value }));
   const showAlert = (type, message) => setInAppAlert({ type, message });
 
+  const pushMarkerToIframe = (lat, lng) => {
+    if (Platform.OS === "web" && iframeRef.current) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ type: "setMarker", lat, lng }),
+        "*"
+      );
+    }
+  };
+
+  // --- MAP HANDLERS ---
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (val.trim().length < 3) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&addressdetails=1&limit=5&countrycodes=id`,
+          { headers: { "Accept-Language": "id" } }
+        );
+        const data = await res.json();
+        setSuggestions(data);
+      } catch {} finally { setLoadingSuggestions(false); }
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (place) => {
+    const lat = parseFloat(place.lat);
+    const lng = parseFloat(place.lon);
+    const name = place.display_name;
+    setSearchQuery(name);
+    setSuggestions([]);
+    setMapRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+    updateField("location", name);
+    pushMarkerToIframe(lat, lng);
+  };
+
+  const handleGps = async () => {
+    setLoadingGps(true);
+    try {
+      if (Platform.OS === "web") {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            setMapRegion({ latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+            pushMarkerToIframe(latitude, longitude);
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+                { headers: { "Accept-Language": "id" } }
+              );
+              const data = await res.json();
+              const name = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+              setSearchQuery(name);
+              updateField("location", name);
+            } catch {
+              const fallback = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+              setSearchQuery(fallback);
+              updateField("location", fallback);
+            }
+            setLoadingGps(false);
+          },
+          () => {
+            showAlert("error", "Gagal mendapatkan lokasi GPS.");
+            setLoadingGps(false);
+          },
+          { timeout: 10000 }
+        );
+        return;
+      }
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        showAlert("error", "Izin lokasi ditolak.");
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+      setMapRegion({ latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+        { headers: { "Accept-Language": "id" } }
+      );
+      const data = await res.json();
+      const name = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      setSearchQuery(name);
+      updateField("location", name);
+    } catch {
+      showAlert("error", "Gagal mendapatkan lokasi GPS.");
+    } finally {
+      if (Platform.OS !== "web") setLoadingGps(false);
+    }
+  };
+
+  // --- IMAGE ---
   const handlePickImage = async () => {
     if (Platform.OS === "web") {
       const input = document.createElement("input");
@@ -146,7 +283,6 @@ export default function Create() {
       input.click();
       return;
     }
-
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       showAlert("error", "Kami membutuhkan izin akses galeri.");
@@ -179,7 +315,6 @@ export default function Create() {
   const handleSubmit = async () => {
     setInAppAlert({ type: "", message: "" });
     if (!validate()) return;
-
     setSubmitting(true);
     try {
       const token = await AsyncStorage.getItem("token");
@@ -188,7 +323,6 @@ export default function Create() {
         router.replace("/(auth)/login");
         return;
       }
-
       let imageUrl = null;
       if (formData.image) {
         const uploadData = new FormData();
@@ -206,7 +340,6 @@ export default function Create() {
         });
         imageUrl = uploadRes.data.image_url;
       }
-
       const res = await api.post(
         "/reports",
         {
@@ -220,10 +353,11 @@ export default function Create() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (res.status === 201 || res.status === 200) {
         const sentTitle = formData.title.trim();
         setFormData(EMPTY_FORM);
+        setSearchQuery("");
+        setMapRegion(DEFAULT_REGION);
         setInAppAlert({ type: "", message: "" });
         setSubmittedTitle(sentTitle);
         setShowSuccess(true);
@@ -257,11 +391,50 @@ export default function Create() {
     borderRadius: 12, padding: 14, fontSize: 15, color: "#374151",
   };
 
+  const mapHtml = `
+    <!DOCTYPE html><html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      <style>* { margin:0; padding:0; } #map { width:100%; height:100vh; }</style>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        var map = L.map('map').setView([${mapRegion.latitude}, ${mapRegion.longitude}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        var marker = L.marker([${mapRegion.latitude}, ${mapRegion.longitude}]).addTo(map);
+        map.on('click', function(e) {
+          marker.setLatLng(e.latlng);
+          var msg = JSON.stringify({ lat: e.latlng.lat, lng: e.latlng.lng });
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(msg);
+          } else {
+            window.parent.postMessage(msg, '*');
+          }
+        });
+        window.addEventListener('message', function(e) {
+          try {
+            var d = JSON.parse(e.data);
+            if (d.type === 'setMarker') {
+              marker.setLatLng([d.lat, d.lng]);
+              map.setView([d.lat, d.lng], 15);
+            }
+          } catch {}
+        });
+      </script>
+    </body></html>
+  `;
+
   return (
     <View style={{ flex: 1 }}>
       <SuccessOverlay visible={showSuccess} reportTitle={submittedTitle} />
 
-      <ScrollView style={{ flex: 1, backgroundColor: "#f8fafd" }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "#f8fafd" }}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* HEADER */}
         <View style={{ padding: 24, paddingTop: 60, backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" }}>
           <Text style={{ fontSize: 12, color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: 1.2 }}>Formulir Baru</Text>
@@ -350,11 +523,101 @@ export default function Create() {
           {/* LOKASI */}
           <View style={cardStyle}>
             <SectionLabel iconName="map-pin" iconColor="#16a34a" iconBg="#dcfce7" label="Lokasi Kejadian *" />
-            <TextInput
-              placeholder="Contoh: Jakarta Timur" placeholderTextColor="#9ca3af"
-              value={formData.location} onChangeText={(t) => updateField("location", t)}
-              style={inputStyle}
-            />
+
+            {/* Search bar */}
+            <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  placeholder="Cari nama jalan, tempat, atau kelurahan..."
+                  placeholderTextColor="#9ca3af"
+                  value={searchQuery}
+                  onChangeText={handleSearchChange}
+                  style={[inputStyle, { paddingLeft: 36 }]}
+                />
+                <View style={{ position: "absolute", left: 12, top: 0, bottom: 0, justifyContent: "center" }}>
+                  {loadingSuggestions
+                    ? <ActivityIndicator size={14} color="#9ca3af" />
+                    : <Feather name="search" size={14} color="#9ca3af" />
+                  }
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={handleGps}
+                disabled={loadingGps}
+                style={{
+                  backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#f3f4f6",
+                  borderRadius: 12, paddingHorizontal: 14, justifyContent: "center", alignItems: "center",
+                }}
+              >
+                {loadingGps
+                  ? <ActivityIndicator size={14} color="#2563eb" />
+                  : <Feather name="navigation" size={16} color="#2563eb" />
+                }
+              </TouchableOpacity>
+            </View>
+
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <View style={{
+                backgroundColor: "#fff", borderWidth: 1, borderColor: "#e5e7eb",
+                borderRadius: 12, marginBottom: 8, overflow: "hidden",
+              }}>
+                {suggestions.map((place) => (
+                  <TouchableOpacity
+                    key={place.place_id}
+                    onPress={() => handleSelectSuggestion(place)}
+                    style={{ paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#f3f4f6" }}
+                  >
+                    <Text style={{ fontSize: 13, color: "#374151" }} numberOfLines={1}>
+                      {place.name || place.display_name.split(",")[0]}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }} numberOfLines={1}>
+                      {place.display_name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Map */}
+            {isNative ? (
+              <WebView
+                style={{ height: 260, borderRadius: 12 }}
+                originWhitelist={["*"]}
+                javaScriptEnabled
+                source={{ html: mapHtml }}
+                onMessage={async (event) => {
+                  const { lat, lng } = JSON.parse(event.nativeEvent.data);
+                  setMapRegion((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+                  try {
+                    const res = await fetch(
+                      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+                      { headers: { "Accept-Language": "id" } }
+                    );
+                    const data = await res.json();
+                    const name = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    setSearchQuery(name);
+                    updateField("location", name);
+                  } catch {
+                    const fallback = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    setSearchQuery(fallback);
+                    updateField("location", fallback);
+                  }
+                }}
+              />
+            ) : (
+              <View style={{ height: 260, borderRadius: 12, overflow: "hidden" }}>
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={mapHtml}
+                  style={{ width: "100%", height: "100%", border: "none", borderRadius: 12 }}
+                />
+              </View>
+            )}
+
+            <Text style={{ fontSize: 11, color: "#9ca3af", textAlign: "center", marginTop: 6 }}>
+              Cari nama tempat, gunakan GPS, atau ketuk langsung di peta
+            </Text>
           </View>
 
           {/* TANGGAL */}
@@ -365,12 +628,12 @@ export default function Create() {
                 type="date"
                 value={formData.incident_date}
                 max={(() => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-})()}
+                  const d = new Date();
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, "0");
+                  const day = String(d.getDate()).padStart(2, "0");
+                  return `${y}-${m}-${day}`;
+                })()}
                 onChange={(e) => updateField("incident_date", e.target.value)}
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 12,

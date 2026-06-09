@@ -33,11 +33,8 @@ function formatTanggal(dateStr) {
 
 export default function Page() {
   const router = useRouter();
-
   const [pengaduan, setPengaduan] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editPengaduan, setEditPengaduan] = useState(null);
 
   const fetchReports = async () => {
     try {
@@ -55,7 +52,7 @@ export default function Page() {
 
   const total    = pengaduan.length;
   const selesai  = pengaduan.filter((t) => t.status === "selesai").length;
-  const pending = pengaduan.filter((t) => t.status === "pending").length;
+  const pending  = pengaduan.filter((t) => t.status === "pending").length;
   const diproses = pengaduan.filter((t) =>
     ["diproses", "diperiksa", "diverifikasi", "tindak_lanjut", "process"].includes(t.status)
   ).length;
@@ -64,33 +61,11 @@ export default function Page() {
     (r) => r.status !== "selesai" && r.status !== "rejected" && r.status !== "ditolak"
   );
 
-  const savePengaduan = async (pengaduanData) => {
-    if (editPengaduan) {
-      try {
-        await api(`/reports/${pengaduanData.id}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            title: pengaduanData.title,
-            description: pengaduanData.description,
-            category_id: pengaduanData.category_id,
-            location: pengaduanData.location,
-            status: pengaduanData.status,
-          }),
-        });
-        fetchReports();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    setShowModal(false);
-    setEditPengaduan(null);
-  };
-
   const stats = [
     { label: "Total Laporan", value: total,    color: "text-blue-600",   bg: "bg-blue-50",   icon: <FileText size={20} />     },
-    { label: "Menunggu",        value: pending,  color: "text-amber-500",  bg: "bg-amber-50",  icon: <Clock3 size={20} />       },
-    { label: "Diproses",        value: diproses,  color: "text-purple-600", bg: "bg-purple-50", icon: <LoaderCircle size={20} /> },
-    { label: "Selesai",         value: selesai,   color: "text-green-600",  bg: "bg-green-50",  icon: <CheckCircle2 size={20} /> },
+    { label: "Menunggu",      value: pending,  color: "text-amber-500",  bg: "bg-amber-50",  icon: <Clock3 size={20} />       },
+    { label: "Diproses",      value: diproses, color: "text-purple-600", bg: "bg-purple-50", icon: <LoaderCircle size={20} /> },
+    { label: "Selesai",       value: selesai,  color: "text-green-600",  bg: "bg-green-50",  icon: <CheckCircle2 size={20} /> },
   ];
 
   return (
@@ -114,9 +89,7 @@ export default function Page() {
           {/* HEADER */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
-                Aktivitas Terbaru
-              </p>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">Aktivitas Terbaru</p>
               <h3 className="text-lg text-gray-800 font-semibold">Laporan Aktif</h3>
             </div>
             <button
@@ -174,7 +147,6 @@ export default function Page() {
                       </div>
 
                       <div className="px-4 pt-4 pb-4 flex flex-col gap-3">
-                        {/* Title + Status */}
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="text-[14px] font-semibold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors duration-150 line-clamp-2">
                             {item.title}
@@ -185,7 +157,6 @@ export default function Page() {
                           </span>
                         </div>
 
-                        {/* Meta */}
                         <div className="flex flex-col gap-1.5">
                           <div className="flex items-start gap-1.5">
                             <svg className="w-3.5 h-3.5 mt-[1px] text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -208,7 +179,6 @@ export default function Page() {
 
                         <div className="h-px bg-gray-100" />
 
-                        {/* Footer */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-1.5 h-1.5 rounded-full ${priority.dot} inline-block`} />

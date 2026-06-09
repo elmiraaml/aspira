@@ -17,49 +17,35 @@ function GoogleIcon() {
 
 export default function Page() {
   const router = useRouter();
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
+        body: JSON.stringify({ email: form.email, password: form.password }),
       });
 
       if (res.token) {
         localStorage.setItem("token", res.token);
         localStorage.setItem("user", JSON.stringify(res.user));
-
         setSuccess(true);
         setTimeout(() => {
-          if (res.user.role === "admin") {
-            router.push("/admin");
-          } else if (res.user.role === "superadmin") {
-            router.push("/superadmin");
-          } else {
-            router.push("/user");
-          }
+          if (res.user.role === "admin") router.push("/admin");
+          else if (res.user.role === "superadmin") router.push("/superadmin");
+          else router.push("/user");
         }, 800);
       } else {
         setError(res.message || "Email atau password salah.");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan koneksi.");
     } finally {
       setLoading(false);
@@ -68,19 +54,11 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
-
-      {/* RIGHT SIDE */}
       <div className="flex-1 flex items-center justify-center px-6 lg:px-20 py-14">
         <div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-xl">
           <div className="mb-8">
-            <p className="tracking-widest text-blue-700 font-semibold">
-              Welcome Back
-            </p>
-
-            <h1 className="text-3xl font-bold text-slate-900 mt-2">
-              Sign in to your account
-            </h1>
-
+            <p className="tracking-widest text-blue-700 font-semibold">Welcome Back</p>
+            <h1 className="text-3xl font-bold text-slate-900 mt-2">Sign in to your account</h1>
           </div>
 
           {success && (
@@ -95,45 +73,26 @@ export default function Page() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-sm font-semibold text-slate-800">
-                Email
-              </label>
-
+              <label className="text-sm font-semibold text-slate-800">Email</label>
               <input
                 type="email"
                 required
                 value={form.email}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    email: e.target.value,
-                  })
-                }
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="name@email.com"
                 className="mt-2 w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-300 outline-none transition"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-slate-800">
-                Password
-              </label>
-
+              <label className="text-sm font-semibold text-slate-800">Password</label>
               <input
                 type="password"
                 required
                 value={form.password}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    password: e.target.value,
-                  })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Enter your password"
                 className="mt-2 w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-300 outline-none transition"
               />
@@ -141,19 +100,10 @@ export default function Page() {
 
             <div className="flex justify-between text-sm">
               <label className="flex items-center gap-2 text-slate-700 font-medium">
-                <input
-                  type="checkbox"
-                  className="accent-blue-700"
-                />
+                <input type="checkbox" className="accent-blue-700" />
                 Remember me
               </label>
-
-              <a
-                href="#"
-                className="text-blue-700 font-semibold hover:underline"
-              >
-                Forgot password?
-              </a>
+              <a href="#" className="text-blue-700 font-semibold hover:underline">Forgot password?</a>
             </div>
 
             <button
@@ -161,16 +111,14 @@ export default function Page() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-60"
             >
-              {loading
-                ? "Signing in..."
-                : "Sign In"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-6 text-xs text-gray-600">
-            <div className="flex-1 h-px bg-gray-300"></div>
+            <div className="flex-1 h-px bg-gray-300" />
             OR CONTINUE WITH
-            <div className="flex-1 h-px bg-gray-300"></div>
+            <div className="flex-1 h-px bg-gray-300" />
           </div>
 
           <button className="w-full border border-gray-300 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-gray-900">
@@ -179,12 +127,7 @@ export default function Page() {
 
           <p className="text-center text-sm text-slate-700 mt-8">
             Don&apos;t have an account?{" "}
-            <a
-              href="/register"
-              className="text-blue-700 font-semibold hover:underline"
-            >
-              Create one
-            </a>
+            <a href="/register" className="text-blue-700 font-semibold hover:underline">Create one</a>
           </p>
         </div>
       </div>

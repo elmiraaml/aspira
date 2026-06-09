@@ -40,6 +40,12 @@ export default function SidebarSuperAdmin() {
     label: "Admin Management",
     icon: <UserCog size={18} />,
   },
+
+  {
+    href: "/superadmin/profile",
+    label: "Profile",
+    icon: <UserCog size={18} />,
+  },
 ];
 
   return (

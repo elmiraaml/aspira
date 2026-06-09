@@ -1,12 +1,96 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, Pressable,
-  Image, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert, Modal
+  Image, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert
 } from "react-native";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { WebView } from "react-native-webview";
 import { api } from "../../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const isNative = Platform.OS === "ios" || Platform.OS === "android";
+
+function useGeocode(location) {
+  const [coords, setCoords] = useState(null);
+  useEffect(() => {
+    if (!location) return;
+    fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
+      { headers: { "Accept-Language": "id" } }
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data[0]) {
+          setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        }
+      })
+      .catch(() => {});
+  }, [location]);
+  return coords;
+}
+
+function LocationMap({ location }) {
+  const coords = useGeocode(location);
+  if (!coords) return (
+    <View style={{ height: 180, borderRadius: 12, backgroundColor: "#f3f4f6", alignItems: "center", justifyContent: "center", marginVertical: 8 }}>
+      <ActivityIndicator size="small" color="#2563eb" />
+    </View>
+  );
+  const html = `
+    <!DOCTYPE html><html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      <style>* { margin:0; padding:0; } #map { width:100%; height:100vh; }</style>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        var map = L.map('map', { zoomControl: true, dragging: true }).setView([${coords.lat}, ${coords.lng}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([${coords.lat}, ${coords.lng}]).addTo(map);
+      </script>
+    </body></html>
+  `;
+  return (
+    <View style={{ height: 180, borderRadius: 12, overflow: "hidden", marginVertical: 8 }}>
+      <WebView style={{ flex: 1 }} originWhitelist={["*"]} javaScriptEnabled source={{ html }} scrollEnabled={false} />
+    </View>
+  );
+}
+
+function WebLocationMap({ location }) {
+  const coords = useGeocode(location);
+  if (!coords) return (
+    <View style={{ height: 180, borderRadius: 12, backgroundColor: "#f3f4f6", alignItems: "center", justifyContent: "center", marginVertical: 8 }}>
+      <ActivityIndicator size="small" color="#2563eb" />
+    </View>
+  );
+  const html = `
+    <!DOCTYPE html><html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      <style>* { margin:0; padding:0; } #map { width:100%; height:100vh; }</style>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        var map = L.map('map', { zoomControl: true, dragging: true }).setView([${coords.lat}, ${coords.lng}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([${coords.lat}, ${coords.lng}]).addTo(map);
+      </script>
+    </body></html>
+  `;
+  return (
+    <View style={{ height: 180, borderRadius: 12, overflow: "hidden", marginVertical: 8 }}>
+      <iframe srcDoc={html} style={{ width: "100%", height: "100%", border: "none", borderRadius: 12 }} />
+    </View>
+  );
+}
 
 export default function ReportDetail() {
   const { id } = useLocalSearchParams();
@@ -14,12 +98,12 @@ export default function ReportDetail() {
   const [timeline, setTimeline] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
-
   const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 24 });
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const menuBtnRef = useRef(null);
 
   useEffect(() => {
     fetchDetail();
@@ -28,7 +112,6 @@ export default function ReportDetail() {
   const fetchDetail = async () => {
     try {
       setLoading(true);
-
       const resReport = await api.get(`/reports/${id}`);
       let reportData = resReport.data;
       if (resReport.data.report) {
@@ -38,7 +121,6 @@ export default function ReportDetail() {
       }
       setReport(reportData);
       setTimeline(resReport.data.timeline || []);
-
       const resComments = await api.get(`/comments/report/${id}`);
       if (Array.isArray(resComments.data)) {
         setComments(resComments.data);
@@ -53,27 +135,19 @@ export default function ReportDetail() {
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-
     setSubmittingComment(true);
     try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        Alert.alert("Error", "Anda harus login untuk memberi komentar");
-        return;
-      }
-
+      if (!token) { Alert.alert("Error", "Anda harus login untuk memberi komentar"); return; }
       const res = await api.post(
         `/comments/report/${id}`,
         { comment: newComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (res.status === 201) {
         setNewComment("");
         const resComments = await api.get(`/comments/report/${id}`);
-        if (Array.isArray(resComments.data)) {
-          setComments(resComments.data);
-        }
+        if (Array.isArray(resComments.data)) setComments(resComments.data);
       }
     } catch (err) {
       console.log("Submit comment error:", err);
@@ -91,18 +165,21 @@ export default function ReportDetail() {
       [
         { text: "Batal", style: "cancel" },
         {
-          text: "Hapus",
-          style: "destructive",
+          text: "Hapus", style: "destructive",
           onPress: async () => {
             try {
               setLoadingDelete(true);
-              const res = await api.delete(`/reports/${id}`);
-              if (res.data?.message === "Laporan berhasil dihapus") {
+              const token = await AsyncStorage.getItem("token");
+              const res = await api.delete(`/reports/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const msg = res?.data?.message || res?.message;
+              if (msg === "Laporan berhasil dihapus") {
                 Alert.alert("Berhasil", "Laporan berhasil dihapus.", [
                   { text: "OK", onPress: () => router.back() },
                 ]);
               } else {
-                Alert.alert("Error", res.data?.message || "Gagal menghapus laporan.");
+                Alert.alert("Error", msg || "Gagal menghapus laporan.");
               }
             } catch (err) {
               console.log("Delete error:", err);
@@ -114,6 +191,17 @@ export default function ReportDetail() {
         },
       ]
     );
+  };
+
+  const handleMenuOpen = () => {
+    if (menuBtnRef.current?.measureInWindow) {
+      menuBtnRef.current.measureInWindow((x, y, width, height) => {
+        setMenuPos({ top: y + height + 4, right: 24 });
+        setMenuVisible(true);
+      });
+    } else {
+      setMenuVisible(true);
+    }
   };
 
   const getPriorityStyle = (priority) => {
@@ -129,14 +217,14 @@ export default function ReportDetail() {
 
   const getStatusStyle = (status) => {
     const map = {
-      pending:       { bg: "#fffbeb", color: "#d97706", label: "Pending",           icon: "clock" },
-      diperiksa:     { bg: "#eff6ff", color: "#2563eb", label: "Diperiksa",         icon: "activity" },
-      diproses:      { bg: "#eff6ff", color: "#2563eb", label: "Diproses",          icon: "activity" },
-      diverifikasi:  { bg: "#f5f3ff", color: "#7c3aed", label: "Diverifikasi",      icon: "activity" },
-      tindak_lanjut: { bg: "#f0f9ff", color: "#0284c7", label: "Tindak Lanjut",     icon: "activity" },
-      selesai:       { bg: "#f0fdf4", color: "#16a34a", label: "Selesai",           icon: "check-circle" },
-      rejected:      { bg: "#fef2f2", color: "#dc2626", label: "Ditolak",           icon: "alert-triangle" },
-      ditolak:       { bg: "#fef2f2", color: "#dc2626", label: "Ditolak",           icon: "alert-triangle" },
+      pending:       { bg: "#fffbeb", color: "#d97706", label: "Pending",       icon: "clock" },
+      diperiksa:     { bg: "#eff6ff", color: "#2563eb", label: "Diperiksa",     icon: "activity" },
+      diproses:      { bg: "#eff6ff", color: "#2563eb", label: "Diproses",      icon: "activity" },
+      diverifikasi:  { bg: "#f5f3ff", color: "#7c3aed", label: "Diverifikasi",  icon: "activity" },
+      tindak_lanjut: { bg: "#f0f9ff", color: "#0284c7", label: "Tindak Lanjut", icon: "activity" },
+      selesai:       { bg: "#f0fdf4", color: "#16a34a", label: "Selesai",       icon: "check-circle" },
+      rejected:      { bg: "#fef2f2", color: "#dc2626", label: "Ditolak",       icon: "alert-triangle" },
+      ditolak:       { bg: "#fef2f2", color: "#dc2626", label: "Ditolak",       icon: "alert-triangle" },
     };
     return map[status] || { bg: "#f9fafb", color: "#6b7280", label: status, icon: "file-text" };
   };
@@ -144,8 +232,7 @@ export default function ReportDetail() {
   const formatDateTime = (date) => {
     if (!date) return "-";
     return new Date(date).toLocaleString("id-ID", {
-      day: "numeric", month: "long", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   };
 
@@ -207,88 +294,39 @@ export default function ReportDetail() {
         </View>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 20 }}
+        onScrollBeginDrag={() => setMenuVisible(false)}
+      >
         {/* DETAIL CARD */}
         <View style={{ backgroundColor: "#ffffff", borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: "#f3f4f6" }}>
 
-          {/* Title + badges */}
+          {/* Title + badges + menu */}
           <View style={{ marginBottom: 16 }}>
-            {/* Title row with three-dot */}
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
               <Text style={{ fontSize: 20, fontWeight: "bold", color: "#111827", flex: 1, paddingRight: 8 }}>
                 {report.title}
               </Text>
 
-              {/* Three-dot menu button */}
-              <View>
-                <TouchableOpacity
-                  onPress={() => setMenuVisible(true)}
-                  disabled={loadingDelete}
-                  style={{
-                    width: 32, height: 32, alignItems: "center", justifyContent: "center",
-                    borderRadius: 16, backgroundColor: "#f9fafb",
-                    borderWidth: 1, borderColor: "#e5e7eb",
-                    opacity: loadingDelete ? 0.5 : 1,
-                  }}
-                >
-                  {loadingDelete
-                    ? <ActivityIndicator size="small" color="#6b7280" />
-                    : <Feather name="more-vertical" size={16} color="#6b7280" />
-                  }
-                </TouchableOpacity>
-
-                {/* Dropdown menu */}
-                <Modal
-                  visible={menuVisible}
-                  transparent
-                  animationType="fade"
-                  onRequestClose={() => setMenuVisible(false)}
-                >
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => setMenuVisible(false)}
-                  >
-                    <View style={{
-                      position: "absolute", top: 160, right: 24,
-                      backgroundColor: "#ffffff", borderRadius: 16,
-                      shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.12, shadowRadius: 12, elevation: 8,
-                      borderWidth: 1, borderColor: "#f3f4f6", minWidth: 180,
-                      overflow: "hidden",
-                    }}>
-                      <TouchableOpacity
-                        onPress={() => { setMenuVisible(false); router.push(`/report/edit/${id}`); }}
-                        style={{
-                          flexDirection: "row", alignItems: "center", gap: 10,
-                          paddingHorizontal: 16, paddingVertical: 14,
-                          borderBottomWidth: 1, borderBottomColor: "#f3f4f6",
-                        }}
-                      >
-                        <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center" }}>
-                          <Feather name="edit-2" size={14} color="#2563eb" />
-                        </View>
-                        <Text style={{ fontSize: 14, fontWeight: "600", color: "#2563eb" }}>Edit Laporan</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={handleDelete}
-                        style={{
-                          flexDirection: "row", alignItems: "center", gap: 10,
-                          paddingHorizontal: 16, paddingVertical: 14,
-                        }}
-                      >
-                        <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center" }}>
-                          <Feather name="trash-2" size={14} color="#dc2626" />
-                        </View>
-                        <Text style={{ fontSize: 14, fontWeight: "600", color: "#dc2626" }}>Hapus Laporan</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Pressable>
-                </Modal>
-              </View>
+              <TouchableOpacity
+                ref={menuBtnRef}
+                onPress={handleMenuOpen}
+                disabled={loadingDelete}
+                style={{
+                  width: 32, height: 32, alignItems: "center", justifyContent: "center",
+                  borderRadius: 16, backgroundColor: "#f9fafb",
+                  borderWidth: 1, borderColor: "#e5e7eb",
+                  opacity: loadingDelete ? 0.5 : 1,
+                }}
+              >
+                {loadingDelete
+                  ? <ActivityIndicator size="small" color="#6b7280" />
+                  : <Feather name="more-vertical" size={16} color="#6b7280" />
+                }
+              </TouchableOpacity>
             </View>
 
-            {/* Badges row below title */}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <View style={{ backgroundColor: priority.bg, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 }}>
                 <Text style={{ fontSize: 11, fontWeight: "700", color: priority.color }}>{priority.label}</Text>
@@ -303,19 +341,21 @@ export default function ReportDetail() {
           {/* Description */}
           <View style={{ backgroundColor: "#eff6ff", borderRadius: 16, padding: 14, marginBottom: 16, flexDirection: "row", gap: 10 }}>
             <Feather name="file-text" size={16} color="#2563eb" style={{ marginTop: 2 }} />
-            <Text style={{ fontSize: 14, color: "#374151", lineHeight: 22, flex: 1 }}>
-              {report.description}
-            </Text>
+            <Text style={{ fontSize: 14, color: "#374151", lineHeight: 22, flex: 1 }}>{report.description}</Text>
           </View>
 
-          {/* Meta items */}
           <MetaItem icon="tag"      label="Kategori"         value={report.category_name || "-"} />
-          <MetaItem icon="map-pin"  label="Lokasi Kejadian"  value={report.location || "-"} />
           <MetaItem icon="calendar" label="Tanggal Kejadian" value={formatDate(report.incident_date)} />
           <MetaItem icon="clock"    label="Dibuat Pada"      value={formatDateTime(report.created_at)} />
+          <MetaItem icon="map-pin"  label="Lokasi Kejadian"  value={report.location || "-"} />
 
-          {/* Image */}
-          {(report.image || report.bukti_foto) ? (
+          {report.location && (
+            isNative
+              ? <LocationMap location={report.location} />
+              : <WebLocationMap location={report.location} />
+          )}
+
+          {(report.image || report.bukti_foto) && (
             <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: "#f3f4f6" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <Feather name="image" size={16} color="#2563eb" />
@@ -327,7 +367,7 @@ export default function ReportDetail() {
                 resizeMode="cover"
               />
             </View>
-          ) : null}
+          )}
         </View>
 
         {/* TIMELINE CARD */}
@@ -370,17 +410,14 @@ export default function ReportDetail() {
                         </View>
                       )}
                     </View>
-
                     <Text style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
                       Oleh: <Text style={{ fontWeight: "600", color: "#374151" }}>{log.changed_by_name || "System"}</Text>
                     </Text>
-
                     {log.notes ? (
                       <View style={{ backgroundColor: "#f9fafb", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, marginTop: 6 }}>
                         <Text style={{ fontSize: 13, color: "#374151", fontStyle: "italic" }}>"{log.notes}"</Text>
                       </View>
                     ) : null}
-
                     <Text style={{ fontSize: 11, color: "#9ca3af", fontWeight: "500", marginTop: 6 }}>
                       {formatDateTime(log.created_at)}
                     </Text>
@@ -414,21 +451,15 @@ export default function ReportDetail() {
                     key={c.id}
                     style={{
                       backgroundColor: isAdmin ? "#eff6ff" : "#f9fafb",
-                      borderRadius: 16,
-                      padding: 14,
-                      borderWidth: 1,
-                      borderColor: "transparent",
+                      borderRadius: 16, padding: 14,
+                      borderWidth: 1, borderColor: "transparent",
                       borderLeftWidth: isAdmin ? 4 : 1,
                       borderLeftColor: isAdmin ? "#2563eb" : "#f3f4f6",
                     }}
                   >
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        <Feather
-                          name={isAdmin ? "shield" : "user"}
-                          size={14}
-                          color={isAdmin ? "#2563eb" : "#6b7280"}
-                        />
+                        <Feather name={isAdmin ? "shield" : "user"} size={14} color={isAdmin ? "#2563eb" : "#6b7280"} />
                         <Text style={{ fontSize: 13, fontWeight: "700", color: "#111827" }}>{c.full_name}</Text>
                         {isAdmin && (
                           <View style={{ backgroundColor: "#2563eb", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 }}>
@@ -486,17 +517,15 @@ export default function ReportDetail() {
                 disabled={submittingComment}
                 style={{
                   flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-                  paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20,
-                  alignSelf: "flex-start",
+                  paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, alignSelf: "flex-start",
                   backgroundColor: newComment.length > 0 ? "#2563eb" : "#d1d5db",
                   opacity: submittingComment ? 0.7 : 1,
                 }}
               >
-                {submittingComment ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Feather name="send" size={14} color="#ffffff" />
-                )}
+                {submittingComment
+                  ? <ActivityIndicator size="small" color="#ffffff" />
+                  : <Feather name="send" size={14} color="#ffffff" />
+                }
                 <Text style={{ fontSize: 13, fontWeight: "700", color: "#ffffff" }}>
                   {submittingComment ? "Mengirim..." : "Kirim Komentar"}
                 </Text>
@@ -507,19 +536,66 @@ export default function ReportDetail() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* DROPDOWN MENU — render di luar ScrollView supaya tidak terpotong */}
+      {menuVisible && (
+        <>
+          {/* backdrop tap to close */}
+          <Pressable
+            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }}
+            onPress={() => setMenuVisible(false)}
+          />
+          <View style={{
+            position: "absolute",
+            top: menuPos.top,
+            right: menuPos.right,
+            zIndex: 9999,
+            backgroundColor: "#ffffff", borderRadius: 16,
+            shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15, shadowRadius: 12, elevation: 99,
+            borderWidth: 1, borderColor: "#f3f4f6", minWidth: 180,
+          }}>
+            {report.status === "pending" && (
+              <TouchableOpacity
+                onPress={() => { setMenuVisible(false); router.push(`/report/edit/${id}`); }}
+                style={{
+                  flexDirection: "row", alignItems: "center", gap: 10,
+                  paddingHorizontal: 16, paddingVertical: 14,
+                  borderBottomWidth: 1, borderBottomColor: "#f3f4f6",
+                }}
+              >
+                <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center" }}>
+                  <Feather name="edit-2" size={14} color="#2563eb" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#2563eb" }}>Edit Laporan</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={() => { setMenuVisible(false); handleDelete(); }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 14 }}
+            >
+              <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center" }}>
+                <Feather name="trash-2" size={14} color="#dc2626" />
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: "600", color: "#dc2626" }}>Hapus Laporan</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
     </KeyboardAvoidingView>
   );
 }
 
 function MetaItem({ icon, label, value }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8 }}>
-      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center" }}>
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, paddingVertical: 8 }}>
+      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <Feather name={icon} size={15} color="#2563eb" />
       </View>
-      <View>
+      <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 10, color: "#9ca3af", fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.8 }}>{label}</Text>
-        <Text style={{ fontSize: 13, fontWeight: "700", color: "#111827", marginTop: 1 }}>{value}</Text>
+        <Text style={{ fontSize: 13, fontWeight: "700", color: "#111827", marginTop: 1, flexWrap: "wrap" }}>{value}</Text>
       </View>
     </View>
   );

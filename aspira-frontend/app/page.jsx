@@ -291,14 +291,18 @@ export default function RieLanding() {
     </p>
 
     <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
-      <button className="btn-primary" style={{ padding: "12px 26px", fontSize: 14 }}>
-        Buat Pengaduan
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-        </svg>
-      </button>
-      <button className="btn-ghost" style={{ padding: "12px 26px", fontSize: 14 }}>Pelajari Lebih</button>
-    </div>
+  <button
+    className="btn-primary"
+    style={{ padding: "12px 26px", fontSize: 14 }}
+    onClick={() => router.push("/login")}
+  >
+    Buat Pengaduan
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+    </svg>
+  </button>
+  <button className="btn-ghost" style={{ padding: "12px 26px", fontSize: 14 }}>Pelajari Lebih</button>
+</div>
 
     <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
       {["✅ Terverifikasi Resmi", "🔒 Data Aman & Rahasia", "⚡ Respons 1×24 Jam"].map(t => (

@@ -13,8 +13,6 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
-
-
 export default function MyReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +23,6 @@ export default function MyReportsPage() {
       setLoading(true);
       const res = await api("/reports/my", { method: "GET" });
       if (res.message && res.message === "Server error") throw new Error("Gagal mengambil data laporan");
-      // Filter out 'selesai' and 'rejected'
       const active = res.filter((r) => r.status !== "selesai" && r.status !== "rejected" && r.status !== "ditolak");
       setReports(active);
     } catch (err) {
@@ -72,16 +69,9 @@ export default function MyReportsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafd]">
-   
-
-      {/* MAIN */}
       <div className="flex flex-col flex-1 min-w-0">
-      
-
-        {/* CONTENT */}
         <main className="flex-1 px-8 py-7">
 
-          {/* HEADER */}
           <div className="mb-6">
             <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">
               Monitoring Pengaduan
@@ -91,7 +81,6 @@ export default function MyReportsPage() {
             </h3>
           </div>
 
-          {/* LOADING */}
           {loading && (
             <div className="flex items-center justify-center py-20 gap-3">
               <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
@@ -99,7 +88,6 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* ERROR */}
           {error && (
             <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 flex items-center gap-3 text-red-500">
               <AlertCircle size={16} />
@@ -107,7 +95,6 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* EMPTY */}
           {!loading && reports.length === 0 && !error && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-20 text-center">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-4 text-blue-300">
@@ -127,82 +114,75 @@ export default function MyReportsPage() {
             </div>
           )}
 
-         {/* LIST */}
-{!loading && reports.length > 0 && (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {reports.map((item) => {
-      const status = getStatusConfig(item.status);
-      return (
-        <Link key={item.id} href={`/user/report/${item.id}`} className="block">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-            
-            {/* Top accent bar sesuai status */}
-            <div className={`h-1 w-full ${
-              item.status === "pending" ? "bg-amber-400" :
-              item.status === "selesai" ? "bg-green-400" :
-              item.status === "ditolak" || item.status === "rejected" ? "bg-red-400" :
-              "bg-blue-400"
-            }`} />
+          {!loading && reports.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {reports.map((item) => {
+                const status = getStatusConfig(item.status);
+                return (
+                  <Link key={item.id} href={`/user/report/${item.id}`} className="block">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
+                      <div className={`h-1 w-full ${
+                        item.status === "pending" ? "bg-amber-400" :
+                        item.status === "selesai" ? "bg-green-400" :
+                        item.status === "ditolak" || item.status === "rejected" ? "bg-red-400" :
+                        "bg-blue-400"
+                      }`} />
 
-            <div className="p-4">
-              {/* Category & Status */}
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <FileQuestion size={12} />
-                  {item.category_name ?? "Umum"}
-                </span>
-                <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg ${status.bg} ${status.color}`}>
-                  {status.icon}
-                  {status.label}
-                </span>
-              </div>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <FileQuestion size={12} />
+                            {item.category_name ?? "Umum"}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg ${status.bg} ${status.color}`}>
+                            {status.icon}
+                            {status.label}
+                          </span>
+                        </div>
 
-              {/* Title */}
-              <h2 className="text-sm font-semibold text-gray-800 mb-3 line-clamp-2">
-                {item.title}
-              </h2>
+                        <h2 className="text-sm font-semibold text-gray-800 mb-3 line-clamp-2">
+                          {item.title}
+                        </h2>
 
-              {/* Location & Date */}
-              <div className="flex flex-col gap-1 mb-4">
-                {item.location && (
-                  <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                    <span>📍</span> {item.location}
-                  </p>
-                )}
-                <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <span>📅</span>
-                  {new Date(item.created_at).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
+                        <div className="flex flex-col gap-1 mb-4">
+                          {item.location && (
+                            <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                              <span>📍</span> {item.location}
+                            </p>
+                          )}
+                          <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <span>📅</span>
+                            {new Date(item.created_at).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
 
-              {/* Footer */}
-              <div className="flex items-center justify-between">
-                {(() => {
-                  const priorityConf = getPriorityConfig(item.priority);
-                  return (
-                    <span className={`text-[11px] ${priorityConf.color} font-medium flex items-center gap-1`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${priorityConf.dot} inline-block`} />
-                      Prioritas {priorityConf.label}
-                    </span>
-                  );
-                })()}
-                <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-                  item.status === "pending" ? "bg-gray-100 text-gray-400" : "bg-blue-500 text-white"
-                }`}>
-                  <ChevronRight size={14} />
-                </div>
-              </div>
+                        <div className="flex items-center justify-between">
+                          {(() => {
+                            const priorityConf = getPriorityConfig(item.priority);
+                            return (
+                              <span className={`text-[11px] ${priorityConf.color} font-medium flex items-center gap-1`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${priorityConf.dot} inline-block`} />
+                                Prioritas {priorityConf.label}
+                              </span>
+                            );
+                          })()}
+                          <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+                            item.status === "pending" ? "bg-gray-100 text-gray-400" : "bg-blue-500 text-white"
+                          }`}>
+                            <ChevronRight size={14} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          </div>
-        </Link>
-      );
-    })}
-  </div>
-)}
+          )}
 
         </main>
       </div>

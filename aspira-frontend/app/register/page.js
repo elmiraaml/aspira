@@ -27,58 +27,33 @@ export default function Page() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirm: "",
-  });
-
+  const [form, setForm] = useState({ fullName: "", email: "", password: "", confirm: "" });
   const [agree, setAgree] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   const strength = getStrength(form.password);
-
-  const handleChange = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
-  };
+  const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!agree) {
-      alert("Harap setujui syarat layanan.");
-      return;
-    }
-
-    if (form.password !== form.confirm) {
-      alert("Password tidak cocok.");
-      return;
-    }
-
+    if (!agree) return alert("Harap setujui syarat layanan.");
+    if (form.password !== form.confirm) return alert("Password tidak cocok.");
     setError("");
 
     try {
       const res = await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({
-          fullname: form.fullName.trim(),
-          email: form.email,
-          password: form.password,
-        }),
+        body: JSON.stringify({ fullname: form.fullName.trim(), email: form.email, password: form.password }),
       });
 
       if (res.message === "Register berhasil") {
         setSuccess(true);
-        setTimeout(() => {
-          router.push("/login");
-        }, 800);
+        setTimeout(() => router.push("/login"), 800);
       } else {
         setError(res.message || "Gagal register.");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan koneksi.");
     }
   };
@@ -87,25 +62,15 @@ export default function Page() {
     <div className="min-h-screen flex bg-gray-50 font-sans">
       <div className="flex-1 flex items-center justify-center px-6 lg:px-20 py-14">
         <div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-xl">
-
-          <p className="text-xs font-semibold tracking-widest text-blue-600 uppercase mb-2">
-            Get Started
-          </p>
-
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Create your account
-          </h1>
-
-          <p className="text-sm text-gray-700 mb-6">
-            Start organizing your day in a smarter way.
-          </p>
+          <p className="text-xs font-semibold tracking-widest text-blue-600 uppercase mb-2">Get Started</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h1>
+          <p className="text-sm text-gray-700 mb-6">Start organizing your day in a smarter way.</p>
 
           {success && (
             <div className="mb-5 bg-green-100 border border-green-600 text-green-800 px-4 py-3 rounded-xl text-sm font-semibold">
               ✓ Account created successfully! Redirecting...
             </div>
           )}
-
           {error && (
             <div className="mb-5 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
               {error}
@@ -113,8 +78,6 @@ export default function Page() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Full Name */}
             <input
               type="text"
               placeholder="Full Name"
@@ -122,8 +85,6 @@ export default function Page() {
               onChange={handleChange("fullName")}
               className="w-full border border-gray-300 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
             />
-
-            {/* Email */}
             <input
               type="email"
               placeholder="Email address"
@@ -133,26 +94,24 @@ export default function Page() {
               required
             />
 
-            {/* Password */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange("password")}
-              className="w-full border border-gray-300 text-gray-900 rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange("password")}
+                className="w-full border border-gray-300 text-gray-900 rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-            {/* Password Strength */}
             {form.password && (
               <div className="flex gap-2">
                 {[1, 2, 3].map((i) => (
@@ -160,11 +119,7 @@ export default function Page() {
                     key={i}
                     className={`flex-1 h-1.5 rounded-full ${
                       strength >= i
-                        ? strength === 1
-                          ? "bg-red-500"
-                          : strength === 2
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
+                        ? strength === 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-500" : "bg-green-500"
                         : "bg-gray-200"
                     }`}
                   />
@@ -172,26 +127,24 @@ export default function Page() {
               </div>
             )}
 
-            {/* Confirm Password */}
-          <div className="relative">
-            <input
-              type={showConfirm ? "text" : "password"}
-              placeholder="Confirm password"
-              value={form.confirm}
-              onChange={handleChange("confirm")}
-              className="w-full border border-gray-300 text-gray-900 rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                placeholder="Confirm password"
+                value={form.confirm}
+                onChange={handleChange("confirm")}
+                className="w-full border border-gray-300 text-gray-900 rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-            {/* Agree */}
             <div className="flex items-start gap-2 text-sm text-gray-800">
               <input
                 type="checkbox"
@@ -202,7 +155,6 @@ export default function Page() {
               <span>I agree to the Terms and Privacy Policy</span>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-900 text-white font-bold shadow-lg"
@@ -212,9 +164,9 @@ export default function Page() {
           </form>
 
           <div className="flex items-center gap-3 my-6 text-xs text-gray-600">
-            <div className="flex-1 h-px bg-gray-300"></div>
+            <div className="flex-1 h-px bg-gray-300" />
             OR CONTINUE WITH
-            <div className="flex-1 h-px bg-gray-300"></div>
+            <div className="flex-1 h-px bg-gray-300" />
           </div>
 
           <button className="w-full border border-gray-300 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-gray-900">
@@ -223,9 +175,7 @@ export default function Page() {
 
           <p className="text-center text-sm text-gray-800 mt-6">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-700 font-semibold">
-              Sign in
-            </a>
+            <a href="/login" className="text-blue-700 font-semibold">Sign in</a>
           </p>
         </div>
       </div>

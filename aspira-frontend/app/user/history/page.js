@@ -6,14 +6,14 @@ import { api } from "@/src/lib/api";
 import { AlertCircle, FileQuestion, ChevronRight } from "lucide-react";
 
 const STATUS_CONFIG = {
-  pending:       { label: "Menunggu",      bg: "bg-amber-50",   text: "text-amber-600",  icon: "clock"        },
-  diperiksa:     { label: "Diperiksa",     bg: "bg-blue-50",    text: "text-blue-600",   icon: "loader"       },
-  diverifikasi:  { label: "Diverifikasi",  bg: "bg-indigo-50",  text: "text-indigo-600", icon: "loader"       },
-  diproses:      { label: "Diproses",      bg: "bg-purple-50",  text: "text-purple-600", icon: "loader"       },
-  tindak_lanjut: { label: "Tindak Lanjut", bg: "bg-pink-50",    text: "text-pink-600",   icon: "loader"       },
-  selesai:       { label: "Selesai",       bg: "bg-green-50",   text: "text-green-600",  icon: "check-circle" },
-  ditolak:       { label: "Ditolak",       bg: "bg-red-50",     text: "text-red-500",    icon: "x-circle"     },
-  rejected:      { label: "Ditolak",       bg: "bg-red-50",     text: "text-red-500",    icon: "x-circle"     },
+  pending:       { label: "Menunggu",      bg: "bg-amber-50",  text: "text-amber-600",  icon: "clock"        },
+  diperiksa:     { label: "Diperiksa",     bg: "bg-blue-50",   text: "text-blue-600",   icon: "loader"       },
+  diverifikasi:  { label: "Diverifikasi",  bg: "bg-indigo-50", text: "text-indigo-600", icon: "loader"       },
+  diproses:      { label: "Diproses",      bg: "bg-purple-50", text: "text-purple-600", icon: "loader"       },
+  tindak_lanjut: { label: "Tindak Lanjut", bg: "bg-pink-50",   text: "text-pink-600",   icon: "loader"       },
+  selesai:       { label: "Selesai",       bg: "bg-green-50",  text: "text-green-600",  icon: "check-circle" },
+  ditolak:       { label: "Ditolak",       bg: "bg-red-50",    text: "text-red-500",    icon: "x-circle"     },
+  rejected:      { label: "Ditolak",       bg: "bg-red-50",    text: "text-red-500",    icon: "x-circle"     },
 };
 
 const PRIORITY_CONFIG = {
@@ -66,13 +66,11 @@ export default function MyReportsPage() {
       <div className="flex flex-col flex-1 min-w-0">
         <main className="flex-1 px-8 py-7">
 
-          {/* HEADER */}
           <div className="mb-6">
             <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 font-medium mb-0.5">Riwayat</p>
             <h3 className="text-lg text-gray-800 font-semibold">Laporan Saya</h3>
           </div>
 
-          {/* LOADING */}
           {loading && (
             <div className="flex items-center justify-center py-20 gap-3">
               <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
@@ -80,7 +78,6 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* ERROR */}
           {error && (
             <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 flex items-center gap-3 text-red-600">
               <AlertCircle size={16} />
@@ -88,7 +85,6 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* EMPTY */}
           {!loading && reports.length === 0 && !error && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-20 text-center">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-4 text-blue-300">
@@ -106,7 +102,6 @@ export default function MyReportsPage() {
             </div>
           )}
 
-          {/* LIST */}
           {!loading && reports.length > 0 && (
             <div className="flex flex-col gap-3">
               {reports.map((item) => {
@@ -115,8 +110,6 @@ export default function MyReportsPage() {
                 return (
                   <Link key={item.id} href={`/user/report/${item.id}`} className="block">
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4 hover:-translate-y-px hover:shadow-md transition-all cursor-pointer">
-
-                      {/* LEFT */}
                       <div className="min-w-0 flex-1">
                         <h2 className="text-sm font-semibold text-gray-800 truncate mb-1">{item.title}</h2>
                         <div className="flex items-center gap-1.5 mb-1">
@@ -128,8 +121,6 @@ export default function MyReportsPage() {
                           {formatTanggal(item.incident_date || item.created_at)}
                         </p>
                       </div>
-
-                      {/* RIGHT */}
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <span className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-2xl ${status.bg} ${status.text}`}>
                           <StatusIcon name={status.icon} size={12} />
@@ -139,7 +130,6 @@ export default function MyReportsPage() {
                           <ChevronRight size={14} />
                         </div>
                       </div>
-
                     </div>
                   </Link>
                 );
